@@ -8,7 +8,6 @@ import { ErrorDisplayComponent } from '../../../shared/components/error-display/
 import { DateUtil } from '../../../core/utils/date.util';
 import { CurrencyUtil } from '../../../core/utils/currency.util';
 import { SessionPaymentUtil } from '../../../core/utils/session-payment.util';
-import { SessionPaymentUtil } from '../../../core/utils/session-payment.util';
 
 @Component({
   selector: 'app-patients-detail',
