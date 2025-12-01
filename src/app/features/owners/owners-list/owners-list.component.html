@@ -29,29 +29,39 @@
               </div>
             </div>
 
-            <!-- Estadísticas de sesiones y pagos -->
-            <div class="bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-4 mb-4 space-y-2">
-              <div class="flex items-center justify-between">
-                <span class="text-sm font-medium text-gray-700">Sesiones:</span>
-                <span class="text-sm font-semibold text-indigo-600">{{ getSessionCount(owner.id) }}</span>
+            <!-- Estadísticas de sesiones y pagos con última sesión -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div class="bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-4 space-y-2">
+                <div class="flex items-center justify-between">
+                  <span class="text-sm font-medium text-gray-700">Sesiones:</span>
+                  <span class="text-sm font-semibold text-indigo-600">{{ getSessionCount(owner.id) }}</span>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-sm font-medium text-gray-700">Pagadas:</span>
+                  <span class="text-sm font-semibold text-green-600">{{ getTotalPaid(owner.id) }}</span>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-sm font-medium text-gray-700">Pendientes:</span>
+                  <span class="text-sm font-semibold text-orange-600">{{ getTotalPending(owner.id) }}</span>
+                </div>
               </div>
-              <div class="flex items-center justify-between">
-                <span class="text-sm font-medium text-gray-700">Pagadas:</span>
-                <span class="text-sm font-semibold text-green-600">{{ getTotalPaid(owner.id) }}</span>
-              </div>
-              <div class="flex items-center justify-between">
-                <span class="text-sm font-medium text-gray-700">Pendientes:</span>
-                <span class="text-sm font-semibold text-orange-600">{{ getTotalPending(owner.id) }}</span>
-              </div>
+              <app-last-session [ownerId]="owner.id" [showDetailsButton]="true" />
             </div>
 
             <!-- Acciones -->
             <div class="flex gap-2">
               <button
                 (click)="toggleOwnerDetails(owner.id)"
-                class="flex-1 text-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium flex items-center justify-center gap-2"
+                [disabled]="isButtonLoading(owner.id)"
+                class="flex-1 text-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                @if (isOwnerExpanded(owner.id)) {
+                @if (isButtonLoading(owner.id)) {
+                  <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <span>Cargando...</span>
+                } @else if (isOwnerExpanded(owner.id)) {
                   <span>Ocultar Detalles</span>
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />

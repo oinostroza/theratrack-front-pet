@@ -7,6 +7,7 @@ import { PetsService } from '../../pets/services/pets.service';
 import { LoadingComponent } from '../../../shared/components/loading/loading.component';
 import { ErrorDisplayComponent } from '../../../shared/components/error-display/error-display.component';
 import { PetAvatarComponent } from '../../../shared/components/pet-avatar/pet-avatar.component';
+import { LastSessionComponent } from '../../../shared/components/last-session/last-session.component';
 import { DateUtil } from '../../../core/utils/date.util';
 import { CurrencyUtil } from '../../../core/utils/currency.util';
 import { StatusUtil } from '../../../core/utils/status.util';
@@ -18,7 +19,7 @@ import { forkJoin } from 'rxjs';
 @Component({
   selector: 'app-owners-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, LoadingComponent, ErrorDisplayComponent, PetAvatarComponent],
+  imports: [CommonModule, RouterModule, LoadingComponent, ErrorDisplayComponent, PetAvatarComponent, LastSessionComponent],
   templateUrl: './owners-list.component.html',
   styleUrl: './owners-list.component.css'
 })
@@ -42,6 +43,9 @@ export class OwnersListComponent implements OnInit {
   readonly expandedOwners = signal<Set<string>>(new Set());
   readonly ownerPets = signal<Map<string, Pet[]>>(new Map());
   readonly ownerCareSessions = signal<Map<string, CareSession[]>>(new Map());
+  
+  // Estado de carga para botones
+  readonly loadingButtons = signal<Set<string>>(new Set());
   
   // Paginación para mascotas y sesiones
   readonly petsPageSize = signal<number>(6);
@@ -129,16 +133,33 @@ export class OwnersListComponent implements OnInit {
   }
 
   toggleOwnerDetails(ownerId: string): void {
+    // Bloquear botón mientras carga
+    const loading = new Set(this.loadingButtons());
+    loading.add(ownerId);
+    this.loadingButtons.set(loading);
+
     const expanded = new Set(this.expandedOwners());
     if (expanded.has(ownerId)) {
       expanded.delete(ownerId);
+      loading.delete(ownerId);
+      this.loadingButtons.set(loading);
     } else {
       expanded.add(ownerId);
       // Cargar datos si no están cargados
       this.getOwnerPets(ownerId);
       this.getOwnerCareSessions(ownerId);
+      
+      // Simular carga (en producción esto sería asíncrono)
+      setTimeout(() => {
+        loading.delete(ownerId);
+        this.loadingButtons.set(loading);
+      }, 500);
     }
     this.expandedOwners.set(expanded);
+  }
+
+  isButtonLoading(ownerId: string): boolean {
+    return this.loadingButtons().has(ownerId);
   }
 
   isOwnerExpanded(ownerId: string): boolean {
