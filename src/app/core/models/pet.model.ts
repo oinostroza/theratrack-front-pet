@@ -22,5 +22,6 @@ export interface UpdatePetRequest {
   species?: string;
   breed?: string;
   age?: number;
+  photoUrl?: string;
 }
 
