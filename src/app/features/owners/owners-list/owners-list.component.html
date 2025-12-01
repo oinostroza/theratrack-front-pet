@@ -77,7 +77,7 @@
                     <p class="text-xs text-gray-500 text-center py-4 bg-white rounded-lg">No hay mascotas registradas</p>
                   } @else {
                     <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
-                      @for (pet of getOwnerPets(owner.id); track pet.id) {
+                      @for (pet of getOwnerPetsPaginated(owner.id); track pet.id) {
                         <div class="bg-white rounded-lg p-3 shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
                           <div class="flex items-center gap-2 mb-2">
                             <app-pet-avatar [pet]="pet" size="sm" />
@@ -89,6 +89,27 @@
                         </div>
                       }
                     </div>
+                    @if (getTotalPetsPages(owner.id) > 1) {
+                      <div class="flex items-center justify-center gap-2 mt-3">
+                        <button
+                          (click)="setPetsPage(owner.id, getCurrentPetsPage(owner.id) - 1)"
+                          [disabled]="getCurrentPetsPage(owner.id) === 1"
+                          class="px-2 py-1 text-xs bg-gray-200 text-gray-700 rounded hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          ←
+                        </button>
+                        <span class="text-xs text-gray-600">
+                          Página {{ getCurrentPetsPage(owner.id) }} de {{ getTotalPetsPages(owner.id) }}
+                        </span>
+                        <button
+                          (click)="setPetsPage(owner.id, getCurrentPetsPage(owner.id) + 1)"
+                          [disabled]="getCurrentPetsPage(owner.id) === getTotalPetsPages(owner.id)"
+                          class="px-2 py-1 text-xs bg-gray-200 text-gray-700 rounded hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          →
+                        </button>
+                      </div>
+                    }
                   }
                 </div>
 
@@ -109,7 +130,7 @@
                           </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
-                          @for (session of getOwnerCareSessions(owner.id); track session.id) {
+                          @for (session of getOwnerCareSessionsPaginated(owner.id); track session.id) {
                             <tr class="hover:bg-gray-50 transition-colors">
                               <td class="px-3 py-2 whitespace-nowrap text-xs text-gray-900">
                                 {{ DateUtil.formatDate(session.startTime) }}
@@ -138,6 +159,27 @@
                         </tbody>
                       </table>
                     </div>
+                    @if (getTotalSessionsPages(owner.id) > 1) {
+                      <div class="flex items-center justify-center gap-2 mt-3">
+                        <button
+                          (click)="setSessionsPage(owner.id, getCurrentSessionsPage(owner.id) - 1)"
+                          [disabled]="getCurrentSessionsPage(owner.id) === 1"
+                          class="px-2 py-1 text-xs bg-gray-200 text-gray-700 rounded hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          ←
+                        </button>
+                        <span class="text-xs text-gray-600">
+                          Página {{ getCurrentSessionsPage(owner.id) }} de {{ getTotalSessionsPages(owner.id) }}
+                        </span>
+                        <button
+                          (click)="setSessionsPage(owner.id, getCurrentSessionsPage(owner.id) + 1)"
+                          [disabled]="getCurrentSessionsPage(owner.id) === getTotalSessionsPages(owner.id)"
+                          class="px-2 py-1 text-xs bg-gray-200 text-gray-700 rounded hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          →
+                        </button>
+                      </div>
+                    }
                   }
                 </div>
               </div>

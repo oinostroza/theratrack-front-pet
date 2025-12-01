@@ -8,6 +8,9 @@ import { LocationsService } from '../../locations/services/locations.service';
 import { SessionReportsService } from '../../session-reports/services/session-reports.service';
 import { LoadingComponent } from '../../../shared/components/loading/loading.component';
 import { ErrorDisplayComponent } from '../../../shared/components/error-display/error-display.component';
+import { ModalComponent } from '../../../shared/components/modal/modal.component';
+import { CareSessionsDetailComponent } from '../../care-sessions/care-sessions-detail/care-sessions-detail.component';
+import { SessionReportsDetailComponent } from '../../session-reports/session-reports-detail/session-reports-detail.component';
 import { PetAvatarComponent } from '../../../shared/components/pet-avatar/pet-avatar.component';
 import { DateUtil } from '../../../core/utils/date.util';
 import { StatusUtil } from '../../../core/utils/status.util';
@@ -19,7 +22,7 @@ import { SessionReport } from '../../../core/models/session-report.model';
 @Component({
   selector: 'app-pets-detail',
   standalone: true,
-  imports: [CommonModule, RouterModule, LoadingComponent, ErrorDisplayComponent, PetAvatarComponent],
+  imports: [CommonModule, RouterModule, LoadingComponent, ErrorDisplayComponent, ModalComponent, CareSessionsDetailComponent, SessionReportsDetailComponent, PetAvatarComponent],
   templateUrl: './pets-detail.component.html',
   styleUrl: './pets-detail.component.css'
 })
@@ -42,6 +45,12 @@ export class PetsDetailComponent implements OnInit, OnChanges {
   readonly petLocations = signal<Location[]>([]);
   readonly petReports = signal<SessionReport[]>([]);
   readonly isLoadingRelated = signal<boolean>(false);
+  
+  // Estado de modales
+  readonly showSessionModal = signal<boolean>(false);
+  readonly showReportModal = signal<boolean>(false);
+  readonly selectedSessionId = signal<string | null>(null);
+  readonly selectedReportId = signal<string | null>(null);
 
   readonly DateUtil = DateUtil;
   readonly StatusUtil = StatusUtil;
@@ -87,15 +96,28 @@ export class PetsDetailComponent implements OnInit, OnChanges {
     });
   }
 
-  deletePet(): void {
-    const pet = this.selectedPet();
-    if (pet && confirm(`¿Estás seguro de eliminar a ${pet.name}?`)) {
-      this.petsService.deletePet(pet.id).subscribe((success) => {
-        if (success) {
-          this.router.navigate(['/pets']);
-        }
-      });
-    }
+  openSessionDetailModal(sessionId: string): void {
+    this.selectedSessionId.set(sessionId);
+    this.careSessionsService.getSessionById(sessionId).subscribe(() => {
+      this.showSessionModal.set(true);
+    });
+  }
+
+  closeSessionDetailModal(): void {
+    this.showSessionModal.set(false);
+    this.selectedSessionId.set(null);
+  }
+
+  openReportDetailModal(reportId: string): void {
+    this.selectedReportId.set(reportId);
+    this.sessionReportsService.getReportById(reportId).subscribe(() => {
+      this.showReportModal.set(true);
+    });
+  }
+
+  closeReportDetailModal(): void {
+    this.showReportModal.set(false);
+    this.selectedReportId.set(null);
   }
 }
 

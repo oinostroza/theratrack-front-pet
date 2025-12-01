@@ -35,9 +35,10 @@ export class PetsListComponent implements OnInit {
 
   // Estado del modal
   readonly showModal = signal<boolean>(false);
-  readonly showDetailModal = signal<boolean>(false);
   readonly editingPet = signal<Pet | null>(null);
-  readonly selectedPet = signal<Pet | null>(null);
+  
+  // Estado de expansión de detalles
+  readonly expandedPets = signal<Set<string>>(new Set());
 
   ngOnInit(): void {
     this.petsService.getPets().subscribe();
@@ -64,16 +65,20 @@ export class PetsListComponent implements OnInit {
     this.petsService.getPets().subscribe();
   }
 
-  openDetailModal(pet: Pet): void {
-    this.selectedPet.set(pet);
-    this.petsService.getPetById(pet.id).subscribe(() => {
-      this.showDetailModal.set(true);
-    });
+  togglePetDetails(petId: string): void {
+    const expanded = new Set(this.expandedPets());
+    if (expanded.has(petId)) {
+      expanded.delete(petId);
+    } else {
+      expanded.add(petId);
+      // Cargar datos del pet si no están cargados
+      this.petsService.getPetById(petId).subscribe();
+    }
+    this.expandedPets.set(expanded);
   }
 
-  closeDetailModal(): void {
-    this.showDetailModal.set(false);
-    this.selectedPet.set(null);
+  isPetExpanded(petId: string): boolean {
+    return this.expandedPets().has(petId);
   }
 }
 

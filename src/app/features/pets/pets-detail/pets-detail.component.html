@@ -54,20 +54,6 @@
             </dl>
           </div>
 
-          <div class="flex space-x-2">
-            <button
-              [routerLink]="['/pets', selectedPet()!.id, 'edit']"
-              class="px-2 py-1 text-xs bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors"
-            >
-              ✏️ Editar
-            </button>
-            <button
-              (click)="deletePet()"
-              class="px-2 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
-            >
-              🗑️ Eliminar
-            </button>
-          </div>
         </div>
 
         <!-- Sesiones de Cuidado -->
@@ -112,9 +98,12 @@
                           }
                         </td>
                         <td class="px-4 py-3 whitespace-nowrap text-sm font-medium">
-                          <a [routerLink]="['/care-sessions', session.id]" class="text-indigo-600 hover:text-indigo-900">
+                          <button
+                            (click)="openSessionDetailModal(session.id)"
+                            class="px-2 py-1 text-xs bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors"
+                          >
                             Ver detalles
-                          </a>
+                          </button>
                         </td>
                       </tr>
                     }
@@ -164,9 +153,12 @@
                     <h3 class="font-semibold text-gray-900">
                       Reporte del {{ DateUtil.formatDate(report.reportDate) }}
                     </h3>
-                    <a [routerLink]="['/session-reports', report.id]" class="text-indigo-600 hover:text-indigo-900 text-sm">
+                    <button
+                      (click)="openReportDetailModal(report.id)"
+                      class="px-2 py-1 text-xs bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors"
+                    >
                       Ver detalles
-                    </a>
+                    </button>
                   </div>
                   <p class="text-sm text-gray-600 line-clamp-2">{{ report.notes }}</p>
                 </div>
@@ -187,4 +179,28 @@
       </a>
     </div>
   }
+
+  <!-- Modal para ver detalles de sesión -->
+  <app-modal
+    [show]="showSessionModal()"
+    [title]="'Detalles de Sesión de Cuidado'"
+    [size]="'xl'"
+    (close)="closeSessionDetailModal()"
+  >
+    @if (selectedSessionId()) {
+      <app-care-sessions-detail [sessionId]="selectedSessionId()!" [isModal]="true" />
+    }
+  </app-modal>
+
+  <!-- Modal para ver detalles de reporte -->
+  <app-modal
+    [show]="showReportModal()"
+    [title]="'Detalles de Reporte'"
+    [size]="'xl'"
+    (close)="closeReportDetailModal()"
+  >
+    @if (selectedReportId()) {
+      <app-session-reports-detail [reportId]="selectedReportId()!" [isModal]="true" />
+    }
+  </app-modal>
 </div>

@@ -42,6 +42,12 @@ export class OwnersListComponent implements OnInit {
   readonly expandedOwners = signal<Set<string>>(new Set());
   readonly ownerPets = signal<Map<string, Pet[]>>(new Map());
   readonly ownerCareSessions = signal<Map<string, CareSession[]>>(new Map());
+  
+  // Paginación para mascotas y sesiones
+  readonly petsPageSize = signal<number>(6);
+  readonly sessionsPageSize = signal<number>(10);
+  readonly petsCurrentPage = signal<Map<string, number>>(new Map());
+  readonly sessionsCurrentPage = signal<Map<string, number>>(new Map());
 
   // Exponer utils para el template
   readonly DateUtil = DateUtil;
@@ -62,6 +68,12 @@ export class OwnersListComponent implements OnInit {
       pets: this.petsService.getPets()
     }).subscribe({
       next: () => {
+        // Pre-cargar datos de todos los owners
+        const owners = this.owners();
+        owners.forEach(owner => {
+          this.getOwnerPets(owner.id);
+          this.getOwnerCareSessions(owner.id);
+        });
         this.isLoading.set(false);
       },
       error: (error) => {
@@ -131,6 +143,56 @@ export class OwnersListComponent implements OnInit {
 
   isOwnerExpanded(ownerId: string): boolean {
     return this.expandedOwners().has(ownerId);
+  }
+
+  // Métodos de paginación para mascotas
+  getOwnerPetsPaginated(ownerId: string): Pet[] {
+    const allPets = this.getOwnerPets(ownerId);
+    const currentPage = this.petsCurrentPage().get(ownerId) || 1;
+    const pageSize = this.petsPageSize();
+    const startIndex = (currentPage - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    return allPets.slice(startIndex, endIndex);
+  }
+
+  getTotalPetsPages(ownerId: string): number {
+    const totalPets = this.getOwnerPets(ownerId).length;
+    return Math.ceil(totalPets / this.petsPageSize());
+  }
+
+  getCurrentPetsPage(ownerId: string): number {
+    return this.petsCurrentPage().get(ownerId) || 1;
+  }
+
+  setPetsPage(ownerId: string, page: number): void {
+    const pages = new Map(this.petsCurrentPage());
+    pages.set(ownerId, page);
+    this.petsCurrentPage.set(pages);
+  }
+
+  // Métodos de paginación para sesiones
+  getOwnerCareSessionsPaginated(ownerId: string): CareSession[] {
+    const allSessions = this.getOwnerCareSessions(ownerId);
+    const currentPage = this.sessionsCurrentPage().get(ownerId) || 1;
+    const pageSize = this.sessionsPageSize();
+    const startIndex = (currentPage - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    return allSessions.slice(startIndex, endIndex);
+  }
+
+  getTotalSessionsPages(ownerId: string): number {
+    const totalSessions = this.getOwnerCareSessions(ownerId).length;
+    return Math.ceil(totalSessions / this.sessionsPageSize());
+  }
+
+  getCurrentSessionsPage(ownerId: string): number {
+    return this.sessionsCurrentPage().get(ownerId) || 1;
+  }
+
+  setSessionsPage(ownerId: string, page: number): void {
+    const pages = new Map(this.sessionsCurrentPage());
+    pages.set(ownerId, page);
+    this.sessionsCurrentPage.set(pages);
   }
 }
 
