@@ -14,6 +14,7 @@ import { CurrencyUtil } from '../../core/utils/currency.util';
 import { StatusUtil } from '../../core/utils/status.util';
 import { LocationUtil } from '../../core/utils/location.util';
 import { MapUtil } from '../../core/utils/map.util';
+import { SessionPaymentUtil } from '../../core/utils/session-payment.util';
 
 interface DashboardStats {
   totalPatients: number;
@@ -62,12 +63,8 @@ export class DashboardComponent implements OnInit {
       return startTime >= now && s.status === 'scheduled';
     }).length;
 
-    const totalPaid = sessions
-      .filter(s => s.pagado && s.precio != null)
-      .reduce((sum, s) => sum + (Number(s.precio) || 0), 0);
-    const totalPending = sessions
-      .filter(s => !s.pagado && s.precio != null)
-      .reduce((sum, s) => sum + (Number(s.precio) || 0), 0);
+    const totalPaid = SessionPaymentUtil.calculateTotalPaid(sessions);
+    const totalPending = SessionPaymentUtil.calculateTotalPending(sessions);
 
     return {
       totalPatients: patients.length,
@@ -201,12 +198,8 @@ export class DashboardComponent implements OnInit {
           pet,
           sessionsCount: petSessions.length,
           locationsCount: petLocations.length,
-          totalPaid: patientSessions
-            .filter(s => s.pagado && s.precio != null)
-            .reduce((sum, s) => sum + (Number(s.precio) || 0), 0),
-          totalPending: patientSessions
-            .filter(s => !s.pagado && s.precio != null)
-            .reduce((sum, s) => sum + (Number(s.precio) || 0), 0)
+          totalPaid: SessionPaymentUtil.calculateTotalPaid(patientSessions),
+          totalPending: SessionPaymentUtil.calculateTotalPending(patientSessions)
         };
       });
     }).flat();

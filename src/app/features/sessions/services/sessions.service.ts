@@ -6,6 +6,7 @@ import { API_ENDPOINTS } from '../../../core/constants/api.constants';
 import { LoggerService } from '../../../core/services/logger.service';
 import { ErrorHandlerUtil } from '../../../core/utils/error-handler.util';
 import { RoleFilterService } from '../../../core/services/role-filter.service';
+import { SessionPaymentUtil } from '../../../core/utils/session-payment.util';
 import { Session, CreateSessionRequest, UpdateSessionRequest } from '../../../core/models/session.model';
 
 @Injectable({
@@ -181,18 +182,14 @@ export class SessionsService {
    * Calcula el total de pagos pendientes
    */
   getTotalPendingPayments(): number {
-    return this._sessions()
-      .filter(s => !s.pagado && s.precio != null)
-      .reduce((total, s) => total + (Number(s.precio) || 0), 0);
+    return SessionPaymentUtil.calculateTotalPending(this._sessions());
   }
 
   /**
    * Calcula el total de pagos realizados
    */
   getTotalPaid(): number {
-    return this._sessions()
-      .filter(s => s.pagado && s.precio != null)
-      .reduce((total, s) => total + (Number(s.precio) || 0), 0);
+    return SessionPaymentUtil.calculateTotalPaid(this._sessions());
   }
 }
 

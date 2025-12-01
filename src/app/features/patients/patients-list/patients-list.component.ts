@@ -9,6 +9,7 @@ import { ErrorDisplayComponent } from '../../../shared/components/error-display/
 import { PetAvatarComponent } from '../../../shared/components/pet-avatar/pet-avatar.component';
 import { DateUtil } from '../../../core/utils/date.util';
 import { CurrencyUtil } from '../../../core/utils/currency.util';
+import { SessionPaymentUtil } from '../../../core/utils/session-payment.util';
 import { Pet } from '../../../core/models/pet.model';
 
 @Component({
@@ -47,21 +48,24 @@ export class PatientsListComponent implements OnInit {
   }
 
   getTotalPaid(patientId: number): number {
-    const sessions = this.getPatientSessions(patientId);
-    return sessions
-      .filter(s => s.pagado && s.precio != null)
-      .reduce((total, s) => total + (Number(s.precio) || 0), 0);
+    return SessionPaymentUtil.calculateTotalPaidForPatient(
+      this.sessionsService.sessions(),
+      patientId
+    );
   }
 
   getTotalPending(patientId: number): number {
-    const sessions = this.getPatientSessions(patientId);
-    return sessions
-      .filter(s => !s.pagado && s.precio != null)
-      .reduce((total, s) => total + (Number(s.precio) || 0), 0);
+    return SessionPaymentUtil.calculateTotalPendingForPatient(
+      this.sessionsService.sessions(),
+      patientId
+    );
   }
 
   getSessionCount(patientId: number): number {
-    return this.getPatientSessions(patientId).length;
+    return SessionPaymentUtil.getSessionCountForPatient(
+      this.sessionsService.sessions(),
+      patientId
+    );
   }
 
   // Métodos para manejar expansión
@@ -97,17 +101,11 @@ export class PatientsListComponent implements OnInit {
   }
 
   getTotalPaidForDetail(patientId: number): number {
-    const sessions = this.getPatientSessionsForDetail(patientId);
-    return sessions
-      .filter(s => s.pagado && s.precio != null)
-      .reduce((total, s) => total + (Number(s.precio) || 0), 0);
+    return this.getTotalPaid(patientId);
   }
 
   getTotalPendingForDetail(patientId: number): number {
-    const sessions = this.getPatientSessionsForDetail(patientId);
-    return sessions
-      .filter(s => !s.pagado && s.precio != null)
-      .reduce((total, s) => total + (Number(s.precio) || 0), 0);
+    return this.getTotalPending(patientId);
   }
 }
 
