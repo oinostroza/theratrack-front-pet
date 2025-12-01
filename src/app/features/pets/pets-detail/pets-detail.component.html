@@ -12,16 +12,16 @@
     <app-loading message="Cargando mascota..." />
   } @else if (error()) {
     <app-error-display [message]="error()!" />
-  } @else if (selectedPet(); as pet) {
+  } @else if (selectedPet()) {
     <div class="bg-white rounded-lg shadow-md overflow-hidden">
       <!-- Header con avatar y nombre -->
       <div class="bg-gradient-to-r from-indigo-500 to-purple-600 p-6">
         <div class="flex items-center space-x-4">
-          <app-pet-avatar [pet]="pet" size="lg" />
+          <app-pet-avatar [pet]="selectedPet()!" size="lg" />
           <div>
-            <h1 class="text-3xl font-bold text-white">{{ pet.name }}</h1>
-            @if (pet.owner) {
-              <p class="text-indigo-100 mt-1">Dueño: {{ pet.owner.name || pet.owner.email }}</p>
+            <h1 class="text-3xl font-bold text-white">{{ selectedPet()!.name }}</h1>
+            @if (selectedPet()!.owner) {
+              <p class="text-indigo-100 mt-1">Dueño: {{ selectedPet()!.owner!.name || selectedPet()!.owner!.email }}</p>
             }
           </div>
         </div>
@@ -35,18 +35,18 @@
             <dl class="space-y-3">
               <div>
                 <dt class="text-sm font-medium text-gray-500">Especie</dt>
-                <dd class="mt-1 text-sm text-gray-900">{{ pet.species }}</dd>
+                <dd class="mt-1 text-sm text-gray-900">{{ selectedPet()!.species }}</dd>
               </div>
-              @if (pet.breed) {
+              @if (selectedPet()!.breed) {
                 <div>
                   <dt class="text-sm font-medium text-gray-500">Raza</dt>
-                  <dd class="mt-1 text-sm text-gray-900">{{ pet.breed }}</dd>
+                  <dd class="mt-1 text-sm text-gray-900">{{ selectedPet()!.breed }}</dd>
                 </div>
               }
-              @if (pet.age) {
+              @if (selectedPet()!.age) {
                 <div>
                   <dt class="text-sm font-medium text-gray-500">Edad</dt>
-                  <dd class="mt-1 text-sm text-gray-900">{{ pet.age }} años</dd>
+                  <dd class="mt-1 text-sm text-gray-900">{{ selectedPet()!.age }} años</dd>
                 </div>
               }
             </dl>
@@ -54,7 +54,7 @@
 
           <div class="flex space-x-2">
             <button
-              [routerLink]="['/pets', pet.id, 'edit']"
+              [routerLink]="['/pets', selectedPet()!.id, 'edit']"
               class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
             >
               Editar
