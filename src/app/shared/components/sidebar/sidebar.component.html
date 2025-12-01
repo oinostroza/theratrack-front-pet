@@ -1,7 +1,17 @@
-<div class="flex flex-col h-full bg-white border-r border-gray-200">
-  <!-- Logo/Header -->
+<div class="flex flex-col h-full bg-white overflow-y-auto">
+  <!-- Logo/Header con botón cerrar en móvil -->
   <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200">
     <h1 class="text-xl font-bold text-gray-900">PetTrack</h1>
+    <!-- Botón cerrar solo en móvil -->
+    <button
+      (click)="close.emit()"
+      class="md:hidden p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+      aria-label="Cerrar menú"
+    >
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
   </div>
 
   <!-- User Info -->
@@ -30,6 +40,7 @@
         [route]="item.route"
         [label]="item.label"
         [icon]="item.icon"
+        (navigate)="close.emit()"
       />
     }
   </nav>

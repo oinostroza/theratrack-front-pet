@@ -1,4 +1,4 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
@@ -21,6 +21,9 @@ interface NavItem {
   styleUrl: './sidebar.component.css'
 })
 export class SidebarComponent {
+  @Input() isOpen: boolean = true;
+  @Output() close = new EventEmitter<void>();
+
   private readonly authService = inject(AuthService);
   private readonly roleFilter = inject(RoleFilterService);
   

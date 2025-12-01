@@ -1,7 +1,17 @@
 <header class="bg-white shadow-sm border-b border-gray-200">
-  <div class="flex items-center justify-between px-6 py-4">
-    <div class="flex items-center">
-      <h1 class="text-2xl font-bold text-gray-900">PetTrack</h1>
+  <div class="flex items-center justify-between px-4 md:px-6 py-4">
+    <div class="flex items-center gap-3">
+      <!-- Botón hamburguesa solo en móvil -->
+      <button
+        (click)="onToggleSidebar()"
+        class="md:hidden p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+        aria-label="Abrir menú"
+      >
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+      <h1 class="text-xl md:text-2xl font-bold text-gray-900">PetTrack</h1>
     </div>
 
     @if (isAuthenticated()) {

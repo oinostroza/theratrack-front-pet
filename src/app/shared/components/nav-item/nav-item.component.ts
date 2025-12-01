@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 
@@ -14,5 +14,10 @@ export class NavItemComponent {
   @Input() icon?: string;
   @Input() label: string = '';
   @Input() exact: boolean = false;
+  @Output() navigate = new EventEmitter<void>();
+
+  onNavigate(): void {
+    this.navigate.emit();
+  }
 }
 
