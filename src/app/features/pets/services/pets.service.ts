@@ -52,6 +52,28 @@ export class PetsService {
   }
 
   /**
+   * Obtiene mascotas por ownerId
+   */
+  getPetsByOwnerId(ownerId: number | string): Observable<Pet[]> {
+    this._isLoading.set(true);
+    this._error.set(null);
+
+    return this.http.get<Pet[]>(`${environment.apiUrl}${API_ENDPOINTS.PETS}?ownerId=${ownerId}`).pipe(
+      map((pets) => this.roleFilter.filterPets(pets)),
+      tap((pets) => {
+        this.logger.info('Mascotas cargadas para dueño', { ownerId, count: pets.length });
+      }),
+      catchError((error) => {
+        const errorInfo = ErrorHandlerUtil.getErrorMessage(error);
+        this._error.set(errorInfo.userFriendlyMessage);
+        this.logger.error('Error al cargar mascotas por dueño', errorInfo);
+        return of([]);
+      }),
+      tap(() => this._isLoading.set(false))
+    );
+  }
+
+  /**
    * Obtiene una mascota por ID
    */
   getPetById(id: string): Observable<Pet | null> {
