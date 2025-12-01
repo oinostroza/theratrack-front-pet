@@ -68,6 +68,29 @@ export class SessionReportsService {
   }
 
   /**
+   * Obtiene reportes por petId
+   */
+  getReportsByPetId(petId: string): Observable<SessionReport[]> {
+    this._isLoading.set(true);
+    this._error.set(null);
+
+    return this.http.get<SessionReport[]>(
+      `${environment.apiUrl}${API_ENDPOINTS.SESSION_REPORTS}?petId=${petId}`
+    ).pipe(
+      tap((reports) => {
+        this.logger.info('Reportes cargados para mascota', { petId, count: reports.length });
+      }),
+      catchError((error) => {
+        const errorInfo = ErrorHandlerUtil.getErrorMessage(error);
+        this._error.set(errorInfo.userFriendlyMessage);
+        this.logger.error('Error al cargar reportes por mascota', errorInfo);
+        return of([]);
+      }),
+      tap(() => this._isLoading.set(false))
+    );
+  }
+
+  /**
    * Obtiene reportes por careSessionId
    */
   getReportsBySessionId(careSessionId: string): Observable<SessionReport[]> {

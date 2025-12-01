@@ -33,6 +33,9 @@
                 Mascota
               </th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Dueño
+              </th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Inicio
               </th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -40,6 +43,9 @@
               </th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Estado
+              </th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Pagado
               </th>
               <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Acciones
@@ -50,7 +56,16 @@
             @for (session of sessions(); track session.id) {
               <tr class="hover:bg-gray-50">
                 <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="text-sm font-medium text-gray-900">{{ session.petId }}</div>
+                  <div class="flex items-center space-x-3">
+                    <app-pet-avatar [pet]="session.pet" size="sm" />
+                    <div>
+                      <div class="text-sm font-medium text-gray-900">{{ session.pet?.name || 'N/A' }}</div>
+                      <div class="text-xs text-gray-500">{{ session.pet?.species || '' }}</div>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm text-gray-900">{{ session.owner?.name || session.owner?.email || 'N/A' }}</div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                   <div class="text-sm text-gray-900">{{ DateUtil.formatDate(session.startTime) }}</div>
@@ -67,7 +82,26 @@
                     {{ StatusUtil.getStatusLabel(session.status) }}
                   </span>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                <td class="px-6 py-4 whitespace-nowrap">
+                  @if (session.paid) {
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                      ✓ Pagado
+                    </span>
+                  } @else {
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                      Pendiente
+                    </span>
+                  }
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                  @if (!session.paid) {
+                    <button
+                      (click)="markAsPaid(session.id)"
+                      class="text-green-600 hover:text-green-900 font-medium"
+                    >
+                      Pagar
+                    </button>
+                  }
                   <a
                     [routerLink]="['/care-sessions', session.id]"
                     class="text-indigo-600 hover:text-indigo-900"

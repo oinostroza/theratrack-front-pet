@@ -130,6 +130,13 @@ export class CareSessionsService {
   }
 
   /**
+   * Marca una sesión como pagada
+   */
+  markAsPaid(id: string): Observable<CareSession | null> {
+    return this.updateSession(id, { paid: true });
+  }
+
+  /**
    * Actualiza una sesión
    */
   updateSession(id: string, sessionData: UpdateCareSessionRequest): Observable<CareSession | null> {

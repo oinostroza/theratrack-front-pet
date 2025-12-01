@@ -1,0 +1,15 @@
+@if (pet) {
+  <div class="flex items-center justify-center rounded-full overflow-hidden bg-gradient-to-br from-blue-400 to-purple-500 {{ sizeClasses() }}"
+       [title]="pet.name">
+    @if (avatarUrl()) {
+      <img [src]="avatarUrl()" 
+           [alt]="pet.name"
+           class="w-full h-full object-cover" />
+    } @else {
+      <span class="text-white font-semibold select-none">
+        {{ emoji() }}
+      </span>
+    }
+  </div>
+}
+

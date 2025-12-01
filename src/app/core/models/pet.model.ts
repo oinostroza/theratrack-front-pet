@@ -6,6 +6,12 @@ export interface Pet {
   age?: number;
   ownerId: string;
   photoUrl?: string;
+  // Relaciones (opcionales, vienen del backend cuando se incluyen)
+  owner?: {
+    id: string;
+    email: string;
+    name?: string;
+  };
   createdAt?: string;
   updatedAt?: string;
 }

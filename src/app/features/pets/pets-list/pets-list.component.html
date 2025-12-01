@@ -30,13 +30,7 @@
           <div class="p-6">
             <div class="flex items-center justify-between mb-4">
               <div class="flex items-center gap-3">
-                @if (pet.photoUrl) {
-                  <img [src]="pet.photoUrl" [alt]="pet.name" class="h-16 w-16 rounded-full object-cover border-2 border-indigo-200">
-                } @else {
-                  <div class="h-16 w-16 rounded-full bg-gradient-to-br from-indigo-400 to-purple-400 flex items-center justify-center text-3xl">
-                    {{ getPetAvatar(pet) }}
-                  </div>
-                }
+                <app-pet-avatar [pet]="pet" size="lg" />
                 <h3 class="text-xl font-semibold text-gray-900">{{ pet.name }}</h3>
               </div>
               <button

@@ -6,6 +6,7 @@ import { LoadingComponent } from '../../../shared/components/loading/loading.com
 import { ErrorDisplayComponent } from '../../../shared/components/error-display/error-display.component';
 import { ModalComponent } from '../../../shared/components/modal/modal.component';
 import { PetsFormComponent } from '../pets-form/pets-form.component';
+import { PetAvatarComponent } from '../../../shared/components/pet-avatar/pet-avatar.component';
 import { Pet } from '../../../core/models/pet.model';
 
 @Component({
@@ -17,7 +18,8 @@ import { Pet } from '../../../core/models/pet.model';
     LoadingComponent, 
     ErrorDisplayComponent,
     ModalComponent,
-    PetsFormComponent
+    PetsFormComponent,
+    PetAvatarComponent
   ],
   templateUrl: './pets-list.component.html',
   styleUrl: './pets-list.component.css'
@@ -56,21 +58,6 @@ export class PetsListComponent implements OnInit {
     this.closeModal();
     // Recargar la lista
     this.petsService.getPets().subscribe();
-  }
-
-  getPetAvatar(pet: Pet): string {
-    if (pet.photoUrl) {
-      return pet.photoUrl;
-    }
-    // Avatar por defecto basado en especie
-    const avatars: Record<string, string> = {
-      'Perro': '🐕',
-      'Gato': '🐈',
-      'Conejo': '🐰',
-      'Ave': '🐦',
-      'Otro': '🐾'
-    };
-    return avatars[pet.species] || '🐾';
   }
 }
 

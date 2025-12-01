@@ -4,13 +4,14 @@ import { RouterModule } from '@angular/router';
 import { CareSessionsService } from '../services/care-sessions.service';
 import { LoadingComponent } from '../../../shared/components/loading/loading.component';
 import { ErrorDisplayComponent } from '../../../shared/components/error-display/error-display.component';
+import { PetAvatarComponent } from '../../../shared/components/pet-avatar/pet-avatar.component';
 import { DateUtil } from '../../../core/utils/date.util';
 import { StatusUtil } from '../../../core/utils/status.util';
 
 @Component({
   selector: 'app-care-sessions-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, LoadingComponent, ErrorDisplayComponent],
+  imports: [CommonModule, RouterModule, LoadingComponent, ErrorDisplayComponent, PetAvatarComponent],
   templateUrl: './care-sessions-list.component.html',
   styleUrl: './care-sessions-list.component.css'
 })
@@ -26,6 +27,12 @@ export class CareSessionsListComponent implements OnInit {
 
   ngOnInit(): void {
     this.careSessionsService.getSessions().subscribe();
+  }
+
+  markAsPaid(sessionId: string): void {
+    if (confirm('¿Marcar esta sesión como pagada?')) {
+      this.careSessionsService.markAsPaid(sessionId).subscribe();
+    }
   }
 }
 
