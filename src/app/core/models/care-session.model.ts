@@ -11,6 +11,9 @@ export interface CareSession {
   pet?: {
     id: string;
     name: string;
+    species: string;
+    breed?: string;
+    age?: number;
     photoUrl?: string;
     ownerId: string;
   };
