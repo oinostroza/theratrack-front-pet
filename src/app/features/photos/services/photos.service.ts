@@ -6,6 +6,7 @@ import { API_ENDPOINTS } from '../../../core/constants/api.constants';
 import { LoggerService } from '../../../core/services/logger.service';
 import { ErrorHandlerUtil } from '../../../core/utils/error-handler.util';
 import { RoleFilterService } from '../../../core/services/role-filter.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { PetsService } from '../../pets/services/pets.service';
 import { CareSessionsService } from '../../care-sessions/services/care-sessions.service';
 import { Photo, CreatePhotoRequest, UpdatePhotoRequest } from '../../../core/models/photo.model';
@@ -17,6 +18,7 @@ export class PhotosService {
   private readonly http = inject(HttpClient);
   private readonly logger = inject(LoggerService);
   private readonly roleFilter = inject(RoleFilterService);
+  private readonly authService = inject(AuthService);
   private readonly petsService = inject(PetsService);
   private readonly careSessionsService = inject(CareSessionsService);
 
@@ -142,8 +144,16 @@ export class PhotosService {
     this._isLoading.set(true);
     this._error.set(null);
 
+    const user = this.authService.user();
+    if (!user || !user.id) {
+      this._error.set('Usuario no autenticado');
+      this._isLoading.set(false);
+      return of(null);
+    }
+
     const formData = new FormData();
     formData.append('file', photoData.file);
+    formData.append('uploadedBy', user.id.toString()); // Campo requerido por el backend
     if (photoData.petId) formData.append('petId', photoData.petId);
     if (photoData.careSessionId) formData.append('careSessionId', photoData.careSessionId);
     if (photoData.sessionReportId) formData.append('sessionReportId', photoData.sessionReportId);

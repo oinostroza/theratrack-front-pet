@@ -4,6 +4,7 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { PetsService } from '../services/pets.service';
 import { PhotosService } from '../../photos/services/photos.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { LoadingComponent } from '../../../shared/components/loading/loading.component';
 import { ErrorDisplayComponent } from '../../../shared/components/error-display/error-display.component';
 import { PhotoUploadComponent } from '../../../shared/components/photo-upload/photo-upload.component';
@@ -31,6 +32,7 @@ export class PetsFormComponent implements OnInit, OnChanges {
   private readonly router = inject(Router);
   private readonly petsService = inject(PetsService);
   private readonly photosService = inject(PhotosService);
+  private readonly authService = inject(AuthService);
 
   @Input() pet?: Pet | null = null;
   @Input() isModal: boolean = false;
