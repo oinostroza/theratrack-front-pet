@@ -1,0 +1,134 @@
+<div class="max-w-2xl mx-auto space-y-6">
+  <div class="flex items-center justify-between">
+    <h1 class="text-3xl font-bold text-gray-900">
+      {{ isEditMode ? 'Editar Sesión' : 'Nueva Sesión de Cuidado' }}
+    </h1>
+    <a
+      routerLink="/care-sessions"
+      class="text-indigo-600 hover:text-indigo-800 text-sm font-medium"
+    >
+      ← Volver
+    </a>
+  </div>
+
+  @if (isLoading()) {
+    <app-loading message="Guardando..." />
+  } @else {
+    <form [formGroup]="sessionForm" (ngSubmit)="onSubmit()" class="bg-white rounded-lg shadow-md p-6 space-y-6">
+      @if (error()) {
+        <app-error-display [message]="error()!" />
+      }
+
+      <div>
+        <label for="petId" class="block text-sm font-medium text-gray-700">
+          Mascota *
+        </label>
+        <select
+          id="petId"
+          formControlName="petId"
+          [class.border-red-300]="petId?.invalid && petId?.touched"
+          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+        >
+          <option value="">Selecciona una mascota</option>
+          @for (pet of pets(); track pet.id) {
+            <option [value]="pet.id">{{ pet.name }}</option>
+          }
+        </select>
+        @if (petId?.invalid && petId?.touched) {
+          <p class="mt-1 text-sm text-red-600">La mascota es requerida</p>
+        }
+      </div>
+
+      <div>
+        <label for="sitterId" class="block text-sm font-medium text-gray-700">
+          ID de Cuidador *
+        </label>
+        <input
+          id="sitterId"
+          type="text"
+          formControlName="sitterId"
+          [class.border-red-300]="sitterId?.invalid && sitterId?.touched"
+          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+        />
+        @if (sitterId?.invalid && sitterId?.touched) {
+          <p class="mt-1 text-sm text-red-600">El ID de cuidador es requerido</p>
+        }
+      </div>
+
+      <div>
+        <label for="startTime" class="block text-sm font-medium text-gray-700">
+          Hora de Inicio *
+        </label>
+        <input
+          id="startTime"
+          type="datetime-local"
+          formControlName="startTime"
+          [class.border-red-300]="startTime?.invalid && startTime?.touched"
+          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+        />
+        @if (startTime?.invalid && startTime?.touched) {
+          <p class="mt-1 text-sm text-red-600">La hora de inicio es requerida</p>
+        }
+      </div>
+
+      <div>
+        <label for="endTime" class="block text-sm font-medium text-gray-700">
+          Hora de Fin
+        </label>
+        <input
+          id="endTime"
+          type="datetime-local"
+          formControlName="endTime"
+          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+        />
+      </div>
+
+      <div>
+        <label for="status" class="block text-sm font-medium text-gray-700">
+          Estado *
+        </label>
+        <select
+          id="status"
+          formControlName="status"
+          [class.border-red-300]="status?.invalid && status?.touched"
+          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+        >
+          <option value="scheduled">Programada</option>
+          <option value="in-progress">En progreso</option>
+          <option value="completed">Completada</option>
+          <option value="cancelled">Cancelada</option>
+        </select>
+      </div>
+
+      <div>
+        <label for="notes" class="block text-sm font-medium text-gray-700">
+          Notas
+        </label>
+        <textarea
+          id="notes"
+          formControlName="notes"
+          rows="4"
+          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+        ></textarea>
+      </div>
+
+      <div class="flex justify-end space-x-3">
+        <button
+          type="button"
+          routerLink="/care-sessions"
+          class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50"
+        >
+          Cancelar
+        </button>
+        <button
+          type="submit"
+          [disabled]="sessionForm.invalid || isLoading()"
+          class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {{ isEditMode ? 'Actualizar' : 'Crear' }}
+        </button>
+      </div>
+    </form>
+  }
+</div>
+

@@ -1,0 +1,130 @@
+<div class="space-y-6">
+  <div class="flex items-center justify-between">
+    <a
+      routerLink="/session-reports"
+      class="text-indigo-600 hover:text-indigo-800 text-sm font-medium"
+    >
+      ← Volver a reportes
+    </a>
+  </div>
+
+  @if (isLoading()) {
+    <app-loading message="Cargando reporte..." />
+  } @else if (error()) {
+    <app-error-display [message]="error()!" />
+  } @else if (selectedReport()) {
+    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+      <div class="p-6">
+        <div class="flex items-center justify-between mb-6">
+          <h1 class="text-3xl font-bold text-gray-900">Reporte de Sesión</h1>
+          <div class="flex space-x-2">
+            <button
+              [routerLink]="['/session-reports', selectedReport()!.id, 'edit']"
+              class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+            >
+              Editar
+            </button>
+            <button
+              (click)="deleteReport()"
+              class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+            >
+              Eliminar
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">Información</h2>
+            <dl class="space-y-3">
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Fecha del Reporte</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ DateUtil.formatDate(selectedReport()!.reportDate) }}</dd>
+              </div>
+              <div>
+                <dt class="text-sm font-medium text-gray-500">ID de Sesión</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ selectedReport()!.careSessionId }}</dd>
+              </div>
+              <div>
+                <dt class="text-sm font-medium text-gray-500">ID de Mascota</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ selectedReport()!.petId }}</dd>
+              </div>
+              @if (selectedReport()!.mood) {
+                <div>
+                  <dt class="text-sm font-medium text-gray-500">Estado de Ánimo</dt>
+                  <dd class="mt-1 text-sm text-gray-900">{{ selectedReport()!.mood }}</dd>
+                </div>
+              }
+            </dl>
+          </div>
+          <div>
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">Actividades</h2>
+            <ul class="list-disc list-inside space-y-2">
+              @for (activity of selectedReport()!.activities; track activity) {
+                <li class="text-sm text-gray-700">{{ activity }}</li>
+              }
+            </ul>
+          </div>
+        </div>
+
+        @if (selectedReport()!.notes) {
+          <div class="mt-6">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">Notas</h2>
+            <p class="text-sm text-gray-700 whitespace-pre-wrap">{{ selectedReport()!.notes }}</p>
+          </div>
+        }
+
+        @if (selectedReport()!.feeding) {
+          <div class="mt-6">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">Alimentación</h2>
+            <dl class="space-y-2">
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Hora</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ selectedReport()!.feeding?.time }}</dd>
+              </div>
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Cantidad</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ selectedReport()!.feeding?.amount }}</dd>
+              </div>
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Tipo de Comida</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ selectedReport()!.feeding?.foodType }}</dd>
+              </div>
+            </dl>
+          </div>
+        }
+
+        @if (selectedReport()!.medication) {
+          <div class="mt-6">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">Medicación</h2>
+            <dl class="space-y-2">
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Hora</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ selectedReport()!.medication?.time }}</dd>
+              </div>
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Medicamento</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ selectedReport()!.medication?.medication }}</dd>
+              </div>
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Dosis</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ selectedReport()!.medication?.dosage }}</dd>
+              </div>
+            </dl>
+          </div>
+        }
+      </div>
+    </div>
+  } @else {
+    <div class="text-center py-12">
+      <p class="text-gray-500 text-lg">Reporte no encontrado</p>
+      <a
+        routerLink="/session-reports"
+        class="mt-4 inline-block px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+      >
+        Volver a reportes
+      </a>
+    </div>
+  }
+</div>
+

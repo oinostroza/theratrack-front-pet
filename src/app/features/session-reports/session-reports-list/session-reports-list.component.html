@@ -1,0 +1,65 @@
+<div class="space-y-6">
+  <div class="flex items-center justify-between">
+    <h1 class="text-3xl font-bold text-gray-900">Reportes de Sesiones</h1>
+    <a
+      routerLink="/session-reports/new"
+      class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+    >
+      + Nuevo Reporte
+    </a>
+  </div>
+
+  @if (isLoading()) {
+    <app-loading message="Cargando reportes..." />
+  } @else if (error()) {
+    <app-error-display [message]="error()!" />
+  } @else if (reports().length === 0) {
+    <div class="text-center py-12">
+      <p class="text-gray-500 text-lg">No hay reportes registrados</p>
+      <a
+        routerLink="/session-reports/new"
+        class="mt-4 inline-block px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+      >
+        Crear primer reporte
+      </a>
+    </div>
+  } @else {
+    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      @for (report of reports(); track report.id) {
+        <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+          <div class="p-6">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-xl font-semibold text-gray-900">Reporte</h3>
+              <span class="text-2xl">📊</span>
+            </div>
+            <div class="space-y-2">
+              <p class="text-sm text-gray-600">
+                <span class="font-medium">Fecha:</span> {{ DateUtil.formatDateShort(report.reportDate) }}
+              </p>
+              <p class="text-sm text-gray-600">
+                <span class="font-medium">Sesión:</span> {{ report.careSessionId }}
+              </p>
+              @if (report.mood) {
+                <p class="text-sm text-gray-600">
+                  <span class="font-medium">Estado de ánimo:</span> {{ report.mood }}
+                </p>
+              }
+              <p class="text-sm text-gray-600">
+                <span class="font-medium">Actividades:</span> {{ report.activities.length }}
+              </p>
+            </div>
+            <div class="mt-4">
+              <a
+                [routerLink]="['/session-reports', report.id]"
+                class="text-indigo-600 hover:text-indigo-800 text-sm font-medium"
+              >
+                Ver detalles →
+              </a>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>
+

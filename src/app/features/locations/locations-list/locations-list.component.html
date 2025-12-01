@@ -1,0 +1,49 @@
+<div class="space-y-6">
+  <div class="flex items-center justify-between">
+    <h1 class="text-3xl font-bold text-gray-900">Ubicaciones</h1>
+    <a
+      routerLink="/locations/new"
+      class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+    >
+      + Nueva Ubicación
+    </a>
+  </div>
+
+  @if (isLoading()) {
+    <app-loading message="Cargando ubicaciones..." />
+  } @else if (error()) {
+    <app-error-display [message]="error()!" />
+  } @else if (locations().length === 0) {
+    <div class="text-center py-12">
+      <p class="text-gray-500 text-lg">No hay ubicaciones registradas</p>
+    </div>
+  } @else {
+    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      @for (location of locations(); track location.id) {
+        <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+          <div class="p-6">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-xl font-semibold text-gray-900">{{ location.name }}</h3>
+              <span class="text-2xl">📍</span>
+            </div>
+            <div class="space-y-2">
+              <p class="text-sm text-gray-600">{{ location.address }}</p>
+              <p class="text-sm text-gray-600">
+                <span class="font-medium">Tipo:</span> {{ LocationUtil.getTypeLabel(location.type) }}
+              </p>
+            </div>
+            <div class="mt-4">
+              <a
+                [routerLink]="['/locations', location.id]"
+                class="text-indigo-600 hover:text-indigo-800 text-sm font-medium"
+              >
+                Ver detalles →
+              </a>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>
+

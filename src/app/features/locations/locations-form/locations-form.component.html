@@ -1,0 +1,74 @@
+<div class="max-w-2xl mx-auto space-y-6">
+  <div class="flex items-center justify-between">
+    <h1 class="text-3xl font-bold text-gray-900">{{ isEditMode ? 'Editar Ubicación' : 'Nueva Ubicación' }}</h1>
+    <a routerLink="/locations" class="text-indigo-600 hover:text-indigo-800 text-sm font-medium">← Volver</a>
+  </div>
+
+  @if (isLoading()) {
+    <app-loading message="Guardando..." />
+  } @else {
+    <form [formGroup]="locationForm" (ngSubmit)="onSubmit()" class="bg-white rounded-lg shadow-md p-6 space-y-6">
+      @if (error()) {
+        <app-error-display [message]="error()!" />
+      }
+
+      <div><label for="name" class="block text-sm font-medium text-gray-700">Nombre *</label>
+        <input id="name" type="text" formControlName="name" [class.border-red-300]="name?.invalid && name?.touched"
+          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" />
+        @if (name?.invalid && name?.touched) {
+          <p class="mt-1 text-sm text-red-600">El nombre es requerido</p>
+        }
+      </div>
+
+      <div><label for="address" class="block text-sm font-medium text-gray-700">Dirección *</label>
+        <input id="address" type="text" formControlName="address" [class.border-red-300]="address?.invalid && address?.touched"
+          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" />
+      </div>
+
+      <div class="grid grid-cols-2 gap-4">
+        <div><label for="latitude" class="block text-sm font-medium text-gray-700">Latitud *</label>
+          <input id="latitude" type="number" step="any" formControlName="latitude" [class.border-red-300]="latitude?.invalid && latitude?.touched"
+            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" />
+        </div>
+        <div><label for="longitude" class="block text-sm font-medium text-gray-700">Longitud *</label>
+          <input id="longitude" type="number" step="any" formControlName="longitude" [class.border-red-300]="longitude?.invalid && longitude?.touched"
+            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" />
+        </div>
+      </div>
+
+      <div><label for="type" class="block text-sm font-medium text-gray-700">Tipo *</label>
+        <select id="type" formControlName="type" [class.border-red-300]="type?.invalid && type?.touched"
+          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+          <option value="home">Casa</option>
+          <option value="vet">Veterinaria</option>
+          <option value="grooming">Peluquería</option>
+          <option value="park">Parque</option>
+          <option value="other">Otro</option>
+        </select>
+      </div>
+
+      <div><label for="petId" class="block text-sm font-medium text-gray-700">Mascota</label>
+        <select id="petId" formControlName="petId"
+          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+          <option value="">Ninguna</option>
+          @for (pet of pets(); track pet.id) {
+            <option [value]="pet.id">{{ pet.name }}</option>
+          }
+        </select>
+      </div>
+
+      <div><label for="notes" class="block text-sm font-medium text-gray-700">Notas</label>
+        <textarea id="notes" formControlName="notes" rows="3"
+          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"></textarea>
+      </div>
+
+      <div class="flex justify-end space-x-3">
+        <button type="button" routerLink="/locations"
+          class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50">Cancelar</button>
+        <button type="submit" [disabled]="locationForm.invalid || isLoading()"
+          class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-50">{{ isEditMode ? 'Actualizar' : 'Crear' }}</button>
+      </div>
+    </form>
+  }
+</div>
+

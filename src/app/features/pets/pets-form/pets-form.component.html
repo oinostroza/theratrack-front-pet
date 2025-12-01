@@ -1,0 +1,257 @@
+@if (!isModal) {
+  <div class="max-w-2xl mx-auto space-y-6">
+    <div class="flex items-center justify-between">
+      <h1 class="text-3xl font-bold text-gray-900">
+        {{ isEditMode ? 'Editar Mascota' : 'Nueva Mascota' }}
+      </h1>
+      <a
+        routerLink="/pets"
+        class="text-indigo-600 hover:text-indigo-800 text-sm font-medium"
+      >
+        ← Volver
+      </a>
+    </div>
+
+    @if (isLoading()) {
+      <app-loading message="Guardando..." />
+    } @else {
+      <form [formGroup]="petForm" (ngSubmit)="onSubmit()" class="bg-white rounded-lg shadow-md p-6 space-y-6">
+        @if (error()) {
+          <app-error-display [message]="error()!" />
+        }
+
+        <div>
+          <label for="name" class="block text-sm font-medium text-gray-700">
+            Nombre *
+          </label>
+          <input
+            id="name"
+            type="text"
+            formControlName="name"
+            [class.border-red-300]="name?.invalid && name?.touched"
+            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+          />
+          @if (name?.invalid && name?.touched) {
+            <p class="mt-1 text-sm text-red-600">
+              @if (name?.errors?.['required']) {
+                El nombre es requerido
+              } @else if (name?.errors?.['minlength']) {
+                El nombre debe tener al menos 2 caracteres
+              }
+            </p>
+          }
+        </div>
+
+        <div>
+          <label for="species" class="block text-sm font-medium text-gray-700">
+            Especie *
+          </label>
+          <select
+            id="species"
+            formControlName="species"
+            [class.border-red-300]="species?.invalid && species?.touched"
+            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+          >
+            <option value="">Selecciona una especie</option>
+            <option value="Perro">Perro</option>
+            <option value="Gato">Gato</option>
+            <option value="Conejo">Conejo</option>
+            <option value="Ave">Ave</option>
+            <option value="Otro">Otro</option>
+          </select>
+          @if (species?.invalid && species?.touched) {
+            <p class="mt-1 text-sm text-red-600">
+              La especie es requerida
+            </p>
+          }
+        </div>
+
+        <div>
+          <label for="breed" class="block text-sm font-medium text-gray-700">
+            Raza
+          </label>
+          <input
+            id="breed"
+            type="text"
+            formControlName="breed"
+            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+          />
+        </div>
+
+        <div>
+          <label for="age" class="block text-sm font-medium text-gray-700">
+            Edad (años)
+          </label>
+          <input
+            id="age"
+            type="number"
+            formControlName="age"
+            min="0"
+            max="30"
+            [class.border-red-300]="age?.invalid && age?.touched"
+            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+          />
+          @if (age?.invalid && age?.touched) {
+            <p class="mt-1 text-sm text-red-600">
+              La edad debe estar entre 0 y 30 años
+            </p>
+          }
+        </div>
+
+        <!-- Foto de la mascota -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            Foto de la Mascota
+          </label>
+          @if (photoPreview) {
+            <div class="mb-4">
+              <img [src]="photoPreview" alt="Preview" class="h-32 w-32 rounded-full object-cover border-4 border-indigo-200">
+            </div>
+          }
+          <app-photo-upload
+            (photoSelected)="onPhotoSelected($event)"
+            [accept]="'image/*'"
+          />
+        </div>
+
+        <div class="flex justify-end space-x-3">
+          <button
+            type="button"
+            (click)="onCancel()"
+            class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50"
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            [disabled]="petForm.invalid || isLoading()"
+            class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {{ isEditMode ? 'Actualizar' : 'Crear' }}
+          </button>
+        </div>
+      </form>
+    }
+  </div>
+} @else {
+  @if (isLoading()) {
+    <app-loading message="Guardando..." />
+  } @else {
+    <form [formGroup]="petForm" (ngSubmit)="onSubmit()" class="space-y-6">
+      @if (error()) {
+        <app-error-display [message]="error()!" />
+      }
+
+      <div>
+        <label for="name-modal" class="block text-sm font-medium text-gray-700">
+          Nombre *
+        </label>
+        <input
+          id="name-modal"
+          type="text"
+          formControlName="name"
+          [class.border-red-300]="name?.invalid && name?.touched"
+          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+        />
+        @if (name?.invalid && name?.touched) {
+          <p class="mt-1 text-sm text-red-600">
+            @if (name?.errors?.['required']) {
+              El nombre es requerido
+            } @else if (name?.errors?.['minlength']) {
+              El nombre debe tener al menos 2 caracteres
+            }
+          </p>
+        }
+      </div>
+
+      <div>
+        <label for="species-modal" class="block text-sm font-medium text-gray-700">
+          Especie *
+        </label>
+        <select
+          id="species-modal"
+          formControlName="species"
+          [class.border-red-300]="species?.invalid && species?.touched"
+          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+        >
+          <option value="">Selecciona una especie</option>
+          <option value="Perro">Perro</option>
+          <option value="Gato">Gato</option>
+          <option value="Conejo">Conejo</option>
+          <option value="Ave">Ave</option>
+          <option value="Otro">Otro</option>
+        </select>
+        @if (species?.invalid && species?.touched) {
+          <p class="mt-1 text-sm text-red-600">
+            La especie es requerida
+          </p>
+        }
+      </div>
+
+      <div>
+        <label for="breed-modal" class="block text-sm font-medium text-gray-700">
+          Raza
+        </label>
+        <input
+          id="breed-modal"
+          type="text"
+          formControlName="breed"
+          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+        />
+      </div>
+
+      <div>
+        <label for="age-modal" class="block text-sm font-medium text-gray-700">
+          Edad (años)
+        </label>
+        <input
+          id="age-modal"
+          type="number"
+          formControlName="age"
+          min="0"
+          max="30"
+          [class.border-red-300]="age?.invalid && age?.touched"
+          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+        />
+        @if (age?.invalid && age?.touched) {
+          <p class="mt-1 text-sm text-red-600">
+            La edad debe estar entre 0 y 30 años
+          </p>
+        }
+      </div>
+
+      <!-- Foto de la mascota -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">
+          Foto de la Mascota
+        </label>
+        @if (photoPreview) {
+          <div class="mb-4">
+            <img [src]="photoPreview" alt="Preview" class="h-32 w-32 rounded-full object-cover border-4 border-indigo-200">
+          </div>
+        }
+        <app-photo-upload
+          (photoSelected)="onPhotoSelected($event)"
+          [accept]="'image/*'"
+        />
+      </div>
+
+      <div class="flex justify-end space-x-3">
+        <button
+          type="button"
+          (click)="onCancel()"
+          class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50"
+        >
+          Cancelar
+        </button>
+        <button
+          type="submit"
+          [disabled]="petForm.invalid || isLoading()"
+          class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {{ isEditMode ? 'Actualizar' : 'Crear' }}
+        </button>
+      </div>
+    </form>
+  }
+}

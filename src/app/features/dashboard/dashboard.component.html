@@ -1,0 +1,355 @@
+<div class="space-y-6 p-6">
+  <!-- Header -->
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-3xl font-bold text-gray-900">Dashboard</h1>
+      <p class="text-gray-600 mt-1">Vista general del sistema PetTrack</p>
+    </div>
+  </div>
+
+  @if (isLoading()) {
+    <app-loading message="Cargando información del dashboard..." />
+  } @else if (error()) {
+    <app-error-display [message]="error()!" />
+  } @else {
+    <!-- Estadísticas -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <!-- Total Dueños -->
+      <div class="bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl shadow-lg p-6 text-white">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-indigo-100 text-sm font-medium">Total Dueños</p>
+            <p class="text-3xl font-bold mt-2">{{ stats().totalPatients }}</p>
+          </div>
+          <div class="h-12 w-12 bg-white/20 rounded-lg flex items-center justify-center">
+            <span class="text-2xl">👥</span>
+          </div>
+        </div>
+        <a routerLink="/patients" class="text-indigo-100 hover:text-white text-sm font-medium mt-4 inline-block">
+          Ver todos →
+        </a>
+      </div>
+
+      <!-- Total Mascotas -->
+      <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl shadow-lg p-6 text-white">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-purple-100 text-sm font-medium">Total Mascotas</p>
+            <p class="text-3xl font-bold mt-2">{{ stats().totalPets }}</p>
+          </div>
+          <div class="h-12 w-12 bg-white/20 rounded-lg flex items-center justify-center">
+            <span class="text-2xl">🐾</span>
+          </div>
+        </div>
+        <a routerLink="/pets" class="text-purple-100 hover:text-white text-sm font-medium mt-4 inline-block">
+          Ver todas →
+        </a>
+      </div>
+
+      <!-- Sesiones Próximas -->
+      <div class="bg-gradient-to-br from-pink-500 to-pink-600 rounded-xl shadow-lg p-6 text-white">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-pink-100 text-sm font-medium">Sesiones Próximas</p>
+            <p class="text-3xl font-bold mt-2">{{ stats().upcomingSessions }}</p>
+          </div>
+          <div class="h-12 w-12 bg-white/20 rounded-lg flex items-center justify-center">
+            <span class="text-2xl">📅</span>
+          </div>
+        </div>
+        <a routerLink="/care-sessions" class="text-pink-100 hover:text-white text-sm font-medium mt-4 inline-block">
+          Ver todas →
+        </a>
+      </div>
+
+      <!-- Total Ubicaciones -->
+      <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-xl shadow-lg p-6 text-white">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-green-100 text-sm font-medium">Total Ubicaciones</p>
+            <p class="text-3xl font-bold mt-2">{{ stats().totalLocations }}</p>
+          </div>
+          <div class="h-12 w-12 bg-white/20 rounded-lg flex items-center justify-center">
+            <span class="text-2xl">📍</span>
+          </div>
+        </div>
+        <a routerLink="/locations" class="text-green-100 hover:text-white text-sm font-medium mt-4 inline-block">
+          Ver todas →
+        </a>
+      </div>
+    </div>
+
+    <!-- Información de Pagos -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-green-500">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm font-medium text-gray-600">Total Pagado</p>
+            <p class="text-2xl font-bold text-green-600 mt-2">{{ CurrencyUtil.formatCLP(stats().totalPaid) }}</p>
+          </div>
+          <div class="h-12 w-12 bg-green-100 rounded-lg flex items-center justify-center">
+            <span class="text-2xl">💰</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-orange-500">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm font-medium text-gray-600">Total Pendiente</p>
+            <p class="text-2xl font-bold text-orange-600 mt-2">{{ CurrencyUtil.formatCLP(stats().totalPending) }}</p>
+          </div>
+          <div class="h-12 w-12 bg-orange-100 rounded-lg flex items-center justify-center">
+            <span class="text-2xl">⏳</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Contenido Principal: Mapa y Listas -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Mapa y Ubicaciones (2/3 del ancho) -->
+      <div class="lg:col-span-2 space-y-6">
+        <!-- Mapa de Ubicaciones -->
+        <div class="bg-white rounded-xl shadow-md overflow-hidden">
+          <div class="p-6 border-b border-gray-200">
+            <h2 class="text-xl font-semibold text-gray-900">Ubicaciones en el Mapa</h2>
+            <p class="text-sm text-gray-600 mt-1">Visualización de todas las ubicaciones registradas</p>
+          </div>
+          <div class="p-6">
+            <!-- Placeholder para mapa - Aquí iría la integración con Google Maps o Leaflet -->
+            <div class="bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg h-96 flex items-center justify-center relative overflow-hidden">
+              <div class="absolute inset-0 flex items-center justify-center">
+                <div class="text-center">
+                  <span class="text-6xl mb-4 block">🗺️</span>
+                  <p class="text-gray-600 font-medium">Mapa Interactivo</p>
+                  <p class="text-sm text-gray-500 mt-2">{{ locationsWithData().length }} ubicaciones</p>
+                </div>
+              </div>
+              
+              <!-- Marcadores simulados -->
+              @for (location of locationsWithData(); track location.id) {
+                <div 
+                  class="absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer group"
+                  [style.left.%]="MapUtil.getMapX(location.longitude)"
+                  [style.top.%]="MapUtil.getMapY(location.latitude)"
+                  [title]="location.name"
+                >
+                  <div class="relative">
+                    <div class="h-4 w-4 bg-red-500 rounded-full border-2 border-white shadow-lg group-hover:scale-150 transition-transform"></div>
+                    <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div class="bg-gray-900 text-white text-xs rounded px-2 py-1 whitespace-nowrap">
+                        {{ location.name }}
+                        @if (location.pet) {
+                          <br>{{ location.pet.name }}
+                        }
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+
+            <!-- Lista de ubicaciones debajo del mapa -->
+            <div class="mt-6 space-y-3">
+              <h3 class="text-sm font-semibold text-gray-700 mb-3">Ubicaciones Registradas</h3>
+              @for (location of locationsWithData(); track location.id) {
+                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors border border-gray-200">
+                  <div class="flex items-center gap-4 flex-1">
+                    <div [class]="'h-10 w-10 rounded-lg flex items-center justify-center ' + LocationUtil.getTypeColor(location.type, true)">
+                      <span class="text-lg">
+                        {{ LocationUtil.getTypeIcon(location.type) }}
+                      </span>
+                    </div>
+                    <div class="flex-1">
+                      <h4 class="font-medium text-gray-900">{{ location.name }}</h4>
+                      <div class="flex items-center gap-3 mt-1">
+                        <span [class]="'px-2 py-0.5 rounded text-xs font-medium border ' + LocationUtil.getTypeColor(location.type, true)">
+                          {{ LocationUtil.getTypeLabel(location.type) }}
+                        </span>
+                        @if (location.pet) {
+                          <span class="text-xs text-gray-600">
+                            🐾 {{ location.pet.name }}
+                          </span>
+                        }
+                        @if (location.patient) {
+                          <span class="text-xs text-gray-600">
+                            👤 {{ location.patient.fullName }}
+                          </span>
+                        }
+                      </div>
+                      <p class="text-xs text-gray-500 mt-1">{{ location.address }}</p>
+                    </div>
+                  </div>
+                  <a 
+                    [routerLink]="['/locations', location.id]"
+                    class="text-indigo-600 hover:text-indigo-800 text-sm font-medium ml-4"
+                  >
+                    Ver →
+                  </a>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel Lateral: Próximas Sesiones y Resumen -->
+      <div class="space-y-6">
+        <!-- Próximas Sesiones -->
+        <div class="bg-white rounded-xl shadow-md overflow-hidden">
+          <div class="p-6 border-b border-gray-200">
+            <h2 class="text-xl font-semibold text-gray-900">Próximas Sesiones</h2>
+            <p class="text-sm text-gray-600 mt-1">Sesiones programadas para los próximos 5 días</p>
+          </div>
+          <div class="p-6 space-y-4 max-h-96 overflow-y-auto">
+            @if (upcomingSessions().length === 0) {
+              <p class="text-center text-gray-500 py-8">No hay sesiones próximas</p>
+            } @else {
+              @for (session of upcomingSessions(); track session.id) {
+                <div class="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200 hover:shadow-md transition-shadow">
+                  <div class="flex items-start justify-between mb-2">
+                    <div class="flex-1">
+                      <h4 class="font-medium text-gray-900">Sesión de Cuidado</h4>
+                      <p class="text-xs text-gray-600 mt-1">
+                        Mascota ID: {{ session.petId }}
+                      </p>
+                    </div>
+                    <span [class]="'px-2 py-1 rounded text-xs font-medium border ' + StatusUtil.getStatusColor(session.status, true)">
+                      {{ StatusUtil.getStatusLabel(session.status) }}
+                    </span>
+                  </div>
+                  <div class="flex items-center gap-2 text-sm text-gray-700 mt-2">
+                    <span>📅</span>
+                    <span>{{ DateUtil.formatDate(session.startTime) }}</span>
+                  </div>
+                  @if (session.notes) {
+                    <p class="text-xs text-gray-600 mt-2 line-clamp-2">{{ session.notes }}</p>
+                  }
+                  <a 
+                    [routerLink]="['/care-sessions', session.id]"
+                    class="text-indigo-600 hover:text-indigo-800 text-xs font-medium mt-2 inline-block"
+                  >
+                    Ver detalles →
+                  </a>
+                </div>
+              }
+            }
+          </div>
+        </div>
+
+        <!-- Resumen Rápido -->
+        <div class="bg-white rounded-xl shadow-md overflow-hidden">
+          <div class="p-6 border-b border-gray-200">
+            <h2 class="text-xl font-semibold text-gray-900">Resumen Rápido</h2>
+          </div>
+          <div class="p-6 space-y-4">
+            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <div class="flex items-center gap-3">
+                <span class="text-2xl">💼</span>
+                <span class="text-sm font-medium text-gray-700">Sesiones Totales</span>
+              </div>
+              <span class="text-lg font-bold text-gray-900">{{ stats().totalCareSessions }}</span>
+            </div>
+            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <div class="flex items-center gap-3">
+                <span class="text-2xl">📊</span>
+                <span class="text-sm font-medium text-gray-700">Reportes</span>
+              </div>
+              <a routerLink="/session-reports" class="text-indigo-600 hover:text-indigo-800 text-sm font-medium">
+                Ver todos →
+              </a>
+            </div>
+            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <div class="flex items-center gap-3">
+                <span class="text-2xl">📷</span>
+                <span class="text-sm font-medium text-gray-700">Fotos</span>
+              </div>
+              <a routerLink="/photos" class="text-indigo-600 hover:text-indigo-800 text-sm font-medium">
+                Ver galería →
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabla de Relaciones: Dueños - Mascotas - Sesiones -->
+    <div class="bg-white rounded-xl shadow-md overflow-hidden">
+      <div class="p-6 border-b border-gray-200">
+        <h2 class="text-xl font-semibold text-gray-900">Relaciones: Dueños, Mascotas y Sesiones</h2>
+        <p class="text-sm text-gray-600 mt-1">Vista cruzada de toda la información</p>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gradient-to-r from-indigo-50 to-purple-50">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Dueño</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Mascota</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Sesiones</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Ubicaciones</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Pagos</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Acciones</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            @for (relation of patientPetRelations(); track relation.pet.id) {
+              <tr class="hover:bg-gray-50 transition-colors">
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="flex items-center">
+                    <div class="h-10 w-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold">
+                      {{ relation.patient.fullName.charAt(0).toUpperCase() }}
+                    </div>
+                    <div class="ml-3">
+                      <div class="text-sm font-medium text-gray-900">{{ relation.patient.fullName }}</div>
+                      <div class="text-xs text-gray-500">{{ relation.patient.email }}</div>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="flex items-center">
+                    <span class="text-2xl mr-2">🐾</span>
+                    <div>
+                      <div class="text-sm font-medium text-gray-900">{{ relation.pet.name }}</div>
+                      <div class="text-xs text-gray-500">{{ relation.pet.species }}</div>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm text-gray-900">
+                    {{ relation.sessionsCount }} sesiones
+                  </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="text-sm text-gray-900">
+                    {{ relation.locationsCount }} ubicaciones
+                  </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  @if (relation.totalPaid > 0 || relation.totalPending > 0) {
+                    <div class="text-sm">
+                      <div class="text-green-600 font-medium">
+                        {{ CurrencyUtil.formatCLP(relation.totalPaid) }}
+                      </div>
+                      <div class="text-xs text-orange-600">
+                        Pendiente: {{ CurrencyUtil.formatCLP(relation.totalPending) }}
+                      </div>
+                    </div>
+                  } @else {
+                    <span class="text-sm text-gray-400">Sin pagos</span>
+                  }
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                  <a [routerLink]="['/patients', relation.patient.id]" class="text-indigo-600 hover:text-indigo-900">Dueño</a>
+                  <span class="text-gray-300">|</span>
+                  <a [routerLink]="['/pets', relation.pet.id]" class="text-purple-600 hover:text-purple-900">Mascota</a>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+</div>
+

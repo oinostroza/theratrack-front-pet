@@ -1,0 +1,12 @@
+<a
+  [routerLink]="route"
+  routerLinkActive="bg-indigo-50 text-indigo-600"
+  [routerLinkActiveOptions]="{ exact: exact }"
+  class="flex items-center px-4 py-2 text-sm font-medium text-gray-700 rounded-md hover:bg-gray-50 hover:text-gray-900 transition-colors"
+>
+  @if (icon) {
+    <span class="mr-3">{{ icon }}</span>
+  }
+  {{ label }}
+</a>
+

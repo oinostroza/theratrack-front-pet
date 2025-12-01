@@ -1,0 +1,30 @@
+<header class="bg-white shadow-sm border-b border-gray-200">
+  <div class="flex items-center justify-between px-6 py-4">
+    <div class="flex items-center">
+      <h1 class="text-2xl font-bold text-gray-900">PetTrack</h1>
+    </div>
+
+    @if (isAuthenticated()) {
+      <div class="flex items-center space-x-4">
+        <div class="flex items-center space-x-3">
+          <div class="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center">
+            <span class="text-indigo-600 text-sm font-medium">
+              {{ user()?.name?.charAt(0)?.toUpperCase() || 'U' }}
+            </span>
+          </div>
+          <div class="hidden md:block">
+            <p class="text-sm font-medium text-gray-900">{{ user()?.name }}</p>
+            <p class="text-xs text-gray-500">{{ user()?.email }}</p>
+          </div>
+        </div>
+        <button
+          (click)="logout()"
+          class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+        >
+          Cerrar Sesión
+        </button>
+      </div>
+    }
+  </div>
+</header>
+

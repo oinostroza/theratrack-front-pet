@@ -1,0 +1,202 @@
+<div class="space-y-6">
+  <div class="flex items-center justify-between">
+    <h1 class="text-3xl font-bold text-gray-900">Calendario</h1>
+    <div class="flex gap-2">
+      <button
+        (click)="previousMonth()"
+        class="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+      >
+        ← Anterior
+      </button>
+      <button
+        (click)="goToToday()"
+        class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+      >
+        Hoy
+      </button>
+      <button
+        (click)="nextMonth()"
+        class="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+      >
+        Siguiente →
+      </button>
+    </div>
+  </div>
+
+  <div class="text-center">
+    <h2 class="text-2xl font-semibold text-gray-800 capitalize">{{ currentMonth() }}</h2>
+  </div>
+
+  @if (isLoading()) {
+    <app-loading message="Cargando calendario..." />
+  } @else if (error()) {
+    <app-error-display [message]="error()!" />
+  } @else {
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+      <!-- Header de días de la semana -->
+      <div class="grid grid-cols-7 bg-gradient-to-r from-indigo-600 to-purple-600 text-white">
+        @for (day of weekDays; track day) {
+          <div class="p-4 text-center font-semibold border-r border-indigo-500 last:border-r-0">
+            {{ day }}
+          </div>
+        }
+      </div>
+
+      <!-- Días del calendario -->
+      <div class="grid grid-cols-7 divide-x divide-y divide-gray-200">
+        @for (day of calendarDays(); track $index) {
+          <div 
+            class="min-h-[120px] p-2 border-r border-b border-gray-200 hover:bg-gray-50 transition-colors"
+            [class.bg-blue-50]="isToday(day)"
+          >
+            @if (day) {
+              <div class="flex flex-col h-full">
+                <!-- Número del día -->
+                <div 
+                  class="text-sm font-medium mb-1"
+                  [class.text-indigo-600]="isToday(day)"
+                  [class.text-gray-900]="!isToday(day)"
+                >
+                  {{ day.getDate() }}
+                </div>
+
+                <!-- Eventos del día -->
+                <div class="flex-1 space-y-1 overflow-y-auto">
+                  @for (event of getEventsForDay(day); track event.id) {
+                    <div
+                      (click)="openEventModal(event)"
+                      [class]="'px-2 py-1 rounded text-xs font-medium border-l-2 ' + event.bgColor + ' ' + event.borderColor + ' ' + event.color + ' cursor-pointer hover:opacity-80 transition-opacity'"
+                      [title]="event.title"
+                    >
+                      {{ event.title.length > 20 ? event.title.substring(0, 20) + '...' : event.title }}
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Leyenda -->
+    <div class="bg-white rounded-lg shadow-md p-4">
+      <h3 class="text-sm font-semibold text-gray-700 mb-3">Leyenda</h3>
+      <div class="flex gap-4">
+        <div class="flex items-center gap-2">
+          <div class="w-4 h-4 rounded bg-blue-100 border-l-2 border-blue-300"></div>
+          <span class="text-sm text-gray-600">Sesiones de Cuidado</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <div class="w-4 h-4 rounded bg-purple-100 border-l-2 border-purple-300"></div>
+          <span class="text-sm text-gray-600">Sesiones de Terapia</span>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Modal de detalles de sesión -->
+  @if (selectedEvent()) {
+    <app-modal
+      [show]="showEventModal()"
+      [title]="selectedEvent()!.type === 'care-session' ? 'Sesión de Cuidado' : 'Sesión de Terapia'"
+      [size]="'lg'"
+      (close)="closeEventModal()"
+    >
+      @if (selectedEvent()!.type === 'care-session') {
+        <div class="space-y-4">
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <dt class="text-sm font-medium text-gray-500">ID de Sesión</dt>
+              <dd class="mt-1 text-sm text-gray-900">{{ selectedEvent()!.data.id }}</dd>
+            </div>
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Mascota ID</dt>
+              <dd class="mt-1 text-sm text-gray-900">{{ selectedEvent()!.data.petId }}</dd>
+            </div>
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Cuidador ID</dt>
+              <dd class="mt-1 text-sm text-gray-900">{{ selectedEvent()!.data.sitterId }}</dd>
+            </div>
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Estado</dt>
+              <dd class="mt-1">
+                <span [class]="'px-2 py-1 rounded text-xs font-medium border ' + StatusUtil.getStatusColor(selectedEvent()!.data.status, true)">
+                  {{ StatusUtil.getStatusLabel(selectedEvent()!.data.status) }}
+                </span>
+              </dd>
+            </div>
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Fecha de Inicio</dt>
+              <dd class="mt-1 text-sm text-gray-900">{{ DateUtil.formatDate(selectedEvent()!.data.startTime) }}</dd>
+            </div>
+            @if (selectedEvent()!.data.endTime) {
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Fecha de Fin</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ DateUtil.formatDate(selectedEvent()!.data.endTime) }}</dd>
+              </div>
+            }
+          </div>
+          @if (selectedEvent()!.data.notes) {
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Notas</dt>
+              <dd class="mt-1 text-sm text-gray-900">{{ selectedEvent()!.data.notes }}</dd>
+            </div>
+          }
+        </div>
+      } @else {
+        <div class="space-y-4">
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <dt class="text-sm font-medium text-gray-500">ID de Sesión</dt>
+              <dd class="mt-1 text-sm text-gray-900">{{ selectedEvent()!.data.id }}</dd>
+            </div>
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Paciente ID</dt>
+              <dd class="mt-1 text-sm text-gray-900">{{ selectedEvent()!.data.patientId || 'N/A' }}</dd>
+            </div>
+            @if (selectedEvent()!.data.fechaInicio) {
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Fecha de Inicio</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ DateUtil.formatDate(selectedEvent()!.data.fechaInicio) }}</dd>
+              </div>
+            }
+            @if (selectedEvent()!.data.fechaFin) {
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Fecha de Fin</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ DateUtil.formatDate(selectedEvent()!.data.fechaFin) }}</dd>
+              </div>
+            }
+            @if (selectedEvent()!.data.conceptoPrincipal) {
+              <div>
+                <dt class="text-sm font-medium text-gray-500">Concepto Principal</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ selectedEvent()!.data.conceptoPrincipal }}</dd>
+              </div>
+            }
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Precio</dt>
+              <dd class="mt-1 text-sm text-gray-900">{{ (selectedEvent()!.data.precio || 0) | currency:'CLP':'symbol':'1.0-0' }}</dd>
+            </div>
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Estado de Pago</dt>
+              <dd class="mt-1">
+                @if (selectedEvent()!.data.pagado) {
+                  <span class="px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-800 border border-green-300">Pagado</span>
+                } @else {
+                  <span class="px-2 py-1 rounded text-xs font-medium bg-orange-100 text-orange-800 border border-orange-300">Pendiente</span>
+                }
+              </dd>
+            </div>
+          </div>
+          @if (selectedEvent()!.data.notasDelTerapeuta) {
+            <div>
+              <dt class="text-sm font-medium text-gray-500">Notas del Terapeuta</dt>
+              <dd class="mt-1 text-sm text-gray-900">{{ selectedEvent()!.data.notasDelTerapeuta }}</dd>
+            </div>
+          }
+        </div>
+      }
+    </app-modal>
+  }
+</div>
+
