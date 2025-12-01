@@ -1,7 +1,7 @@
 export interface User {
   id: string;
   email: string;
-  name: string;
+  name: string | undefined;
   role: 'owner' | 'sitter' | 'admin' | 'therapist' | 'patient';
   createdAt?: string;
   updatedAt?: string;
@@ -25,4 +25,4 @@ export interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-}
+} 

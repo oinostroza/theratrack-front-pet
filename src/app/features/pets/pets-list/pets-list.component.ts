@@ -71,31 +71,38 @@ export class PetsListComponent implements OnInit {
   }
 
   togglePetDetails(petId: string): void {
+    const expanded = new Set(this.expandedPets());
+    
+    // Si ya está expandido, solo colapsar
+    if (expanded.has(petId)) {
+      expanded.delete(petId);
+      this.expandedPets.set(expanded);
+      return;
+    }
+
+    // Si no está expandido, expandir y cargar datos
+    expanded.add(petId);
+    this.expandedPets.set(expanded);
+    
     // Bloquear botón mientras carga
     const loading = new Set(this.loadingButtons());
     loading.add(petId);
     this.loadingButtons.set(loading);
 
-    const expanded = new Set(this.expandedPets());
-    if (expanded.has(petId)) {
-      expanded.delete(petId);
-      loading.delete(petId);
-      this.loadingButtons.set(loading);
-    } else {
-      expanded.add(petId);
-      // Cargar datos del pet si no están cargados
-      this.petsService.getPetById(petId).subscribe({
-        next: () => {
+    // Cargar datos del pet
+    this.petsService.getPetById(petId).subscribe({
+      next: () => {
+        // Simular un pequeño delay para mostrar el spinner
+        setTimeout(() => {
           loading.delete(petId);
           this.loadingButtons.set(loading);
-        },
-        error: () => {
-          loading.delete(petId);
-          this.loadingButtons.set(loading);
-        }
-      });
-    }
-    this.expandedPets.set(expanded);
+        }, 300);
+      },
+      error: () => {
+        loading.delete(petId);
+        this.loadingButtons.set(loading);
+      }
+    });
   }
 
   isPetExpanded(petId: string): boolean {
