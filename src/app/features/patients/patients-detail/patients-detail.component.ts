@@ -8,6 +8,7 @@ import { ErrorDisplayComponent } from '../../../shared/components/error-display/
 import { DateUtil } from '../../../core/utils/date.util';
 import { CurrencyUtil } from '../../../core/utils/currency.util';
 import { SessionPaymentUtil } from '../../../core/utils/session-payment.util';
+import { SessionPaymentUtil } from '../../../core/utils/session-payment.util';
 
 @Component({
   selector: 'app-patients-detail',
@@ -45,17 +46,21 @@ export class PatientsDetailComponent implements OnInit {
   }
 
   getTotalPaid(): number {
-    const sessions = this.getPatientSessions();
-    return sessions
-      .filter(s => s.pagado && s.precio != null)
-      .reduce((total, s) => total + (Number(s.precio) || 0), 0);
+    const patient = this.selectedPatient();
+    if (!patient) return 0;
+    return SessionPaymentUtil.calculateTotalPaidForPatient(
+      this.sessions(),
+      patient.id
+    );
   }
 
   getTotalPending(): number {
-    const sessions = this.getPatientSessions();
-    return sessions
-      .filter(s => !s.pagado && s.precio != null)
-      .reduce((total, s) => total + (Number(s.precio) || 0), 0);
+    const patient = this.selectedPatient();
+    if (!patient) return 0;
+    return SessionPaymentUtil.calculateTotalPendingForPatient(
+      this.sessions(),
+      patient.id
+    );
   }
 
   deletePatient(): void {
