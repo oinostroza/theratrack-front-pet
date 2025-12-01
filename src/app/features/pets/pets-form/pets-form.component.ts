@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, Input, Output, EventEmitter, effect, signal } from '@angular/core';
+import { Component, OnInit, OnChanges, SimpleChanges, inject, Input, Output, EventEmitter, effect, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
@@ -25,7 +25,7 @@ import { forkJoin } from 'rxjs';
   templateUrl: './pets-form.component.html',
   styleUrl: './pets-form.component.css'
 })
-export class PetsFormComponent implements OnInit {
+export class PetsFormComponent implements OnInit, OnChanges {
   private readonly fb = inject(FormBuilder);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
@@ -56,13 +56,6 @@ export class PetsFormComponent implements OnInit {
       age: [null, [Validators.min(0), Validators.max(30)]],
       photoUrl: ['']
     });
-
-    // Efecto para cargar datos cuando se pasa un pet como Input
-    effect(() => {
-      if (this.pet) {
-        this.loadPetData(this.pet);
-      }
-    });
   }
 
   ngOnInit(): void {
@@ -75,13 +68,31 @@ export class PetsFormComponent implements OnInit {
         this.loadPetAndPhotos(this.petId);
       }
     } else {
-      // Si es modal y hay pet, es edición
-      if (this.pet) {
-        this.isEditMode = true;
-        this.petId = this.pet.id;
-        this.loadPetData(this.pet);
-        this.loadAvailablePhotos();
-      }
+      // Si es modal, verificar si hay pet para establecer modo edición
+      this.updateEditMode();
+    }
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    // Detectar cambios en el Input pet
+    if (changes['pet'] && this.isModal) {
+      this.updateEditMode();
+    }
+  }
+
+  private updateEditMode(): void {
+    if (this.pet) {
+      this.isEditMode = true;
+      this.petId = this.pet.id;
+      this.loadPetData(this.pet);
+      this.loadAvailablePhotos();
+    } else {
+      this.isEditMode = false;
+      this.petId = null;
+      this.petForm.reset();
+      this.photoPreview = null;
+      this.selectedPhoto = null;
+      this.selectedPhotoId = null;
     }
   }
 
