@@ -1,4 +1,4 @@
-import { Component, Input, computed, signal } from '@angular/core';
+import { Component, Input, Output, EventEmitter, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Pet } from '../../../core/models/pet.model';
 
@@ -12,6 +12,8 @@ import { Pet } from '../../../core/models/pet.model';
 export class PetAvatarComponent {
   @Input() pet?: Pet | { id: string; name: string; photoUrl?: string };
   @Input() size: 'sm' | 'md' | 'lg' = 'md';
+  @Input() clickable: boolean = false;
+  @Output() avatarClick = new EventEmitter<Pet | { id: string; name: string; photoUrl?: string }>();
 
   readonly sizeClasses = computed(() => {
     const sizes = {

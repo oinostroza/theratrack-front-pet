@@ -1,6 +1,14 @@
 @if (pet) {
-  <div class="flex items-center justify-center rounded-full overflow-hidden bg-gradient-to-br from-blue-400 to-purple-500 {{ sizeClasses() }}"
-       [title]="pet.name">
+  <div 
+    class="relative flex items-center justify-center rounded-full overflow-hidden bg-gradient-to-br from-blue-400 to-purple-500 {{ sizeClasses() }} transition-all duration-300"
+    [class.cursor-pointer]="clickable"
+    [class.hover:scale-110]="clickable"
+    [class.hover:shadow-lg]="clickable"
+    [class.ring-2]="clickable"
+    [class.ring-indigo-300]="clickable"
+    [class.ring-offset-2]="clickable"
+    [title]="clickable ? 'Click para cambiar foto' : pet.name"
+    (click)="clickable && avatarClick.emit(pet)">
     @if (avatarUrl()) {
       <img [src]="avatarUrl()" 
            [alt]="pet.name"
@@ -9,6 +17,16 @@
       <span class="text-white font-semibold select-none">
         {{ emoji() }}
       </span>
+    }
+    @if (clickable) {
+      <div class="absolute inset-0 bg-black/50 opacity-0 hover:opacity-100 transition-opacity duration-300 flex items-center justify-center rounded-full backdrop-blur-sm z-10">
+        <div class="bg-white/20 rounded-full p-2">
+          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+        </div>
+      </div>
     }
   </div>
 }

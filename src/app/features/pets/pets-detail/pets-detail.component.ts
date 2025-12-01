@@ -1,7 +1,7 @@
-import { Component, OnInit, OnChanges, SimpleChanges, inject, signal, Input } from '@angular/core';
+import { Component, OnInit, OnChanges, SimpleChanges, inject, signal, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { forkJoin } from 'rxjs';
+import { forkJoin, of } from 'rxjs';
 import { PetsService } from '../services/pets.service';
 import { CareSessionsService } from '../../care-sessions/services/care-sessions.service';
 import { LocationsService } from '../../locations/services/locations.service';
@@ -29,6 +29,7 @@ import { SessionReport } from '../../../core/models/session-report.model';
 export class PetsDetailComponent implements OnInit, OnChanges {
   @Input() petId?: string;
   @Input() isModal: boolean = false;
+  @Output() dataLoaded = new EventEmitter<void>();
 
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
@@ -56,31 +57,75 @@ export class PetsDetailComponent implements OnInit, OnChanges {
   readonly StatusUtil = StatusUtil;
   readonly LocationUtil = LocationUtil;
 
+  private lastLoadedPetId: string | null = null;
+
   ngOnInit(): void {
-    const petId = this.petId || this.route.snapshot.paramMap.get('id');
-    if (petId) {
-      this.loadPetData(petId);
+    // Solo inicializar si tiene petId (cuando se usa como componente inline)
+    if (this.petId && this.petId !== this.lastLoadedPetId) {
+      this.loadPetData(this.petId);
+    } else if (!this.petId) {
+      // Solo usar route si no hay petId (cuando se usa como ruta)
+      const petId = this.route.snapshot.paramMap.get('id');
+      if (petId && petId !== this.lastLoadedPetId) {
+        this.loadPetData(petId);
+      }
     }
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['petId'] && this.petId) {
+    // Solo cargar si el petId cambió y es diferente al último cargado
+    if (changes['petId'] && this.petId && this.petId !== this.lastLoadedPetId) {
       this.loadPetData(this.petId);
     }
   }
 
   private loadPetData(petId: string): void {
+    // Evitar cargar el mismo pet múltiples veces
+    if (this.lastLoadedPetId === petId) {
+      // Si ya tenemos los datos relacionados cargados, no volver a cargar
+      if (this.petSessions().length > 0 || this.petLocations().length > 0 || this.petReports().length > 0) {
+        // Emitir evento de que los datos ya están cargados
+        this.dataLoaded.emit();
+        return;
+      }
+    }
+    
+    this.lastLoadedPetId = petId;
     this.petsService.getPetById(petId).subscribe((pet) => {
       if (pet) {
         this.loadRelatedData(pet.id);
-      }
+      } else {
+        // Si no hay pet, emitir evento para desbloquear botón
+        this.dataLoaded.emit();
+      } 
     });
   }
 
+  private lastLoadedRelatedPetId: string | null = null;
+
   private loadRelatedData(petId: string): void {
+    // Evitar cargar datos relacionados múltiples veces para el mismo pet
+    if (this.lastLoadedRelatedPetId === petId && 
+        (this.petSessions().length > 0 || this.petLocations().length > 0 || this.petReports().length > 0)) {
+      // Datos ya cargados, emitir evento inmediatamente
+      this.dataLoaded.emit();
+      return;
+    }
+
+    this.lastLoadedRelatedPetId = petId;
     this.isLoadingRelated.set(true);
+    
+    // PRIMERO: Intentar usar datos en caché para sesiones
+    const cachedSessions = this.careSessionsService.sessions();
+    const petSessionsFromCache = cachedSessions.filter(s => s.petId === petId);
+    
+    // Si tenemos sesiones en caché, usarlas; si no, hacer llamada HTTP
+    const sessionsObservable = petSessionsFromCache.length > 0
+      ? of(petSessionsFromCache)
+      : this.careSessionsService.getSessionsByPetId(petId);
+    
     forkJoin({
-      sessions: this.careSessionsService.getSessionsByPetId(petId),
+      sessions: sessionsObservable,
       locations: this.locationsService.getLocationsByPetId(petId),
       reports: this.sessionReportsService.getReportsByPetId(petId)
     }).subscribe({
@@ -89,9 +134,13 @@ export class PetsDetailComponent implements OnInit, OnChanges {
         this.petLocations.set(locations);
         this.petReports.set(reports);
         this.isLoadingRelated.set(false);
+        // Notificar que los datos están cargados
+        this.dataLoaded.emit();
       },
       error: () => {
         this.isLoadingRelated.set(false);
+        // Notificar incluso si hay error para desbloquear el botón
+        this.dataLoaded.emit();
       }
     });
   }

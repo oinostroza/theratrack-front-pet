@@ -1,85 +1,119 @@
-import { Component, Input, Output, EventEmitter, inject, signal, OnInit, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, Output, EventEmitter, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
+import { forkJoin, of } from 'rxjs';
 import { CareSessionsService } from '../../../features/care-sessions/services/care-sessions.service';
+import { SessionReportsService } from '../../../features/session-reports/services/session-reports.service';
+import { PhotosService } from '../../../features/photos/services/photos.service';
+import { LocationsService } from '../../../features/locations/services/locations.service';
 import { DateUtil } from '../../../core/utils/date.util';
+import { StatusUtil } from '../../../core/utils/status.util';
 import { CareSession } from '../../../core/models/care-session.model';
+import { SessionReport } from '../../../core/models/session-report.model';
+import { Photo } from '../../../core/models/photo.model';
+import { Location } from '../../../core/models/location.model';
 
 @Component({
   selector: 'app-last-session',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterModule],
   templateUrl: './last-session.component.html',
   styleUrl: './last-session.component.css'
 })
-export class LastSessionComponent implements OnInit, OnChanges {
+export class LastSessionComponent {
   @Input() petId?: string;
   @Input() ownerId?: string;
   @Input() showDetailsButton: boolean = true;
   @Output() viewDetails = new EventEmitter<CareSession>();
 
   private readonly careSessionsService = inject(CareSessionsService);
-
-  readonly isLoading = signal<boolean>(false);
-  readonly lastSession = signal<CareSession | null>(null);
-  readonly isExpanded = signal<boolean>(false);
+  private readonly sessionReportsService = inject(SessionReportsService);
+  private readonly photosService = inject(PhotosService);
+  private readonly locationsService = inject(LocationsService);
 
   readonly DateUtil = DateUtil;
+  readonly StatusUtil = StatusUtil;
+  
+  // Exponer el signal de sesiones para reactividad en el template
+  readonly sessions = this.careSessionsService.sessions;
+  
+  // Estado de expansión
+  readonly isExpanded = signal<boolean>(false);
+  readonly isLoadingDetails = signal<boolean>(false);
+  
+  // Datos relacionados
+  readonly sessionReport = signal<SessionReport | null>(null);
+  readonly sessionPhotos = signal<Photo[]>([]);
+  readonly sessionLocation = signal<Location | null>(null);
 
-  ngOnInit(): void {
-    this.loadLastSession();
-  }
-
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['petId'] || changes['ownerId']) {
-      this.loadLastSession();
-    }
-  }
-
-  private loadLastSession(): void {
-    if (!this.petId && !this.ownerId) return;
-
-    this.isLoading.set(true);
+  // Método helper para calcular la última sesión
+  getLastSession(): CareSession | null {
+    const allSessions = this.sessions();
     
     if (this.petId) {
-      // Cargar última sesión de una mascota específica
-      this.careSessionsService.getSessionsByPetId(this.petId).subscribe({
-        next: (sessions) => {
-          const sorted = sessions.sort((a, b) => 
-            new Date(b.startTime).getTime() - new Date(a.startTime).getTime()
-          );
-          this.lastSession.set(sorted.length > 0 ? sorted[0] : null);
-          this.isLoading.set(false);
-        },
-        error: () => {
-          this.isLoading.set(false);
-        }
-      });
+      // Filtrar sesiones de la mascota específica
+      const petSessions = allSessions.filter(s => s.petId === this.petId);
+      if (petSessions.length === 0) return null;
+      
+      // Ordenar por fecha descendente y tomar la primera
+      const sorted = [...petSessions].sort((a, b) => 
+        new Date(b.startTime).getTime() - new Date(a.startTime).getTime()
+      );
+      return sorted[0];
     } else if (this.ownerId) {
-      // Cargar última sesión de todas las mascotas de un owner
-      this.careSessionsService.getSessions().subscribe({
-        next: (allSessions) => {
-          // Filtrar sesiones del owner basándose en pet.ownerId
-          const sorted = allSessions
-            .filter(s => s.pet?.ownerId?.toString() === this.ownerId)
-            .sort((a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime());
-          this.lastSession.set(sorted.length > 0 ? sorted[0] : null);
-          this.isLoading.set(false);
-        },
-        error: () => {
-          this.isLoading.set(false);
-        }
-      });
+      // Filtrar sesiones de todas las mascotas del owner
+      const ownerSessions = allSessions.filter(s => 
+        s.pet?.ownerId?.toString() === this.ownerId
+      );
+      if (ownerSessions.length === 0) return null;
+      
+      // Ordenar por fecha descendente y tomar la primera
+      const sorted = [...ownerSessions].sort((a, b) => 
+        new Date(b.startTime).getTime() - new Date(a.startTime).getTime()
+      );
+      return sorted[0];
+    }
+    
+    return null;
+  }
+
+  toggleExpand(): void {
+    const wasExpanded = this.isExpanded();
+    this.isExpanded.set(!wasExpanded);
+    
+    if (!wasExpanded) {
+      // Cargar datos relacionados cuando se expande
+      this.loadSessionDetails();
     }
   }
 
-  onViewDetails(): void {
-    const session = this.lastSession();
-    if (session) {
-      this.isExpanded.set(!this.isExpanded());
-      if (this.isExpanded()) {
-        this.viewDetails.emit(session);
+  private loadSessionDetails(): void {
+    const session = this.getLastSession();
+    if (!session) return;
+
+    this.isLoadingDetails.set(true);
+    
+    // Cargar reportes, fotos y ubicaciones
+    const locationObservable = session.petId 
+      ? this.locationsService.getLocationsByPetId(session.petId)
+      : of([]);
+    
+    forkJoin({
+      reports: this.sessionReportsService.getReportsBySessionId(session.id),
+      photos: this.photosService.getPhotosBySessionId(session.id),
+      locations: locationObservable
+    }).subscribe({
+      next: ({ reports, photos, locations }) => {
+        this.sessionReport.set(reports.length > 0 ? reports[0] : null);
+        this.sessionPhotos.set(photos);
+        // Tomar la primera ubicación del pet
+        this.sessionLocation.set(locations.length > 0 ? locations[0] : null);
+        this.isLoadingDetails.set(false);
+      },
+      error: () => {
+        this.isLoadingDetails.set(false);
       }
-    }
+    });
   }
 }
 

@@ -33,7 +33,7 @@ export class PhotosGalleryComponent implements OnInit {
     }
   }
 
-  onPhotoUploaded(photoId: string): void {
+  onPhotoUploaded(): void {
     // Recargar fotos después de subir
     if (this.petId) {
       this.photosService.getPhotosByPetId(this.petId).subscribe();

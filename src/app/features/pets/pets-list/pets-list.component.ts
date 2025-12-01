@@ -1,15 +1,19 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { forkJoin } from 'rxjs';
 import { PetsService } from '../services/pets.service';
+import { CareSessionsService } from '../../care-sessions/services/care-sessions.service';
+import { PhotosService } from '../../photos/services/photos.service';
 import { LoadingComponent } from '../../../shared/components/loading/loading.component';
 import { ErrorDisplayComponent } from '../../../shared/components/error-display/error-display.component';
 import { ModalComponent } from '../../../shared/components/modal/modal.component';
 import { PetsFormComponent } from '../pets-form/pets-form.component';
-import { PetsDetailComponent } from '../pets-detail/pets-detail.component';
 import { PetAvatarComponent } from '../../../shared/components/pet-avatar/pet-avatar.component';
 import { LastSessionComponent } from '../../../shared/components/last-session/last-session.component';
+import { PhotoUploadComponent } from '../../../shared/components/photo-upload/photo-upload.component';
 import { Pet } from '../../../core/models/pet.model';
+import { Photo } from '../../../core/models/photo.model';
 
 @Component({
   selector: 'app-pets-list',
@@ -21,15 +25,17 @@ import { Pet } from '../../../core/models/pet.model';
     ErrorDisplayComponent,
     ModalComponent,
     PetsFormComponent,
-    PetsDetailComponent,
     PetAvatarComponent,
-    LastSessionComponent
+    LastSessionComponent,
+    PhotoUploadComponent
   ],
   templateUrl: './pets-list.component.html',
   styleUrl: './pets-list.component.css'
 })
 export class PetsListComponent implements OnInit {
   private readonly petsService = inject(PetsService);
+  private readonly careSessionsService = inject(CareSessionsService);
+  private readonly photosService = inject(PhotosService);
 
   readonly pets = this.petsService.pets;
   readonly isLoading = this.petsService.isLoading;
@@ -39,16 +45,27 @@ export class PetsListComponent implements OnInit {
   readonly showModal = signal<boolean>(false);
   readonly editingPet = signal<Pet | null>(null);
   
-  // Estado de expansión de detalles
-  readonly expandedPets = signal<Set<string>>(new Set());
+  // Estado del modal de foto
+  readonly showPhotoModal = signal<boolean>(false);
+  readonly petForPhoto = signal<Pet | null>(null);
   
-  // Estado de carga para botones
-  readonly loadingButtons = signal<Set<string>>(new Set());
 
   ngOnInit(): void {
-    this.petsService.getPets().subscribe();
-  }
-
+    // Cargar mascotas y sesiones de una vez para que LastSessionComponent pueda usar el caché
+    // Similar a como funciona en owners-list
+    forkJoin({
+      pets: this.petsService.getPets(),
+      sessions: this.careSessionsService.getSessions()
+    }).subscribe({
+      next: () => {
+        // Datos cargados, LastSessionComponent usará el caché
+      },
+      error: (error) => {
+        console.error('Error al cargar datos:', error);
+      }
+    });
+  } 
+ 
   openNewModal(): void {
     this.editingPet.set(null);
     this.showModal.set(true);
@@ -70,47 +87,32 @@ export class PetsListComponent implements OnInit {
     this.petsService.getPets().subscribe();
   }
 
-  togglePetDetails(petId: string): void {
-    const expanded = new Set(this.expandedPets());
-    
-    // Si ya está expandido, solo colapsar
-    if (expanded.has(petId)) {
-      expanded.delete(petId);
-      this.expandedPets.set(expanded);
-      return;
+
+  onAvatarClick(pet: Pet): void {
+    this.petForPhoto.set(pet);
+    this.showPhotoModal.set(true);
+  }
+
+  closePhotoModal(): void {
+    this.showPhotoModal.set(false);
+    this.petForPhoto.set(null);
+  }
+
+  onPhotoUploaded(photo: Photo): void {
+    const pet = this.petForPhoto();
+    if (pet && photo && photo.url) {
+      // Actualizar la mascota con la nueva foto
+      this.petsService.updatePet(pet.id, { photoUrl: photo.url }).subscribe({
+        next: () => {
+          this.closePhotoModal();
+          // Recargar la lista para mostrar la nueva foto
+          this.petsService.getPets().subscribe();
+        },
+        error: (error) => {
+          console.error('Error al actualizar foto:', error);
+        }
+      });
     }
-
-    // Si no está expandido, expandir y cargar datos
-    expanded.add(petId);
-    this.expandedPets.set(expanded);
-    
-    // Bloquear botón mientras carga
-    const loading = new Set(this.loadingButtons());
-    loading.add(petId);
-    this.loadingButtons.set(loading);
-
-    // Cargar datos del pet
-    this.petsService.getPetById(petId).subscribe({
-      next: () => {
-        // Simular un pequeño delay para mostrar el spinner
-        setTimeout(() => {
-          loading.delete(petId);
-          this.loadingButtons.set(loading);
-        }, 300);
-      },
-      error: () => {
-        loading.delete(petId);
-        this.loadingButtons.set(loading);
-      }
-    });
-  }
-
-  isPetExpanded(petId: string): boolean {
-    return this.expandedPets().has(petId);
-  }
-
-  isButtonLoading(petId: string): boolean {
-    return this.loadingButtons().has(petId);
   }
 }
 

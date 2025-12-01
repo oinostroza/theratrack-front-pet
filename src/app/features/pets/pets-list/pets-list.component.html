@@ -26,73 +26,47 @@
   } @else {
     <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
       @for (pet of pets(); track pet.id) {
-        <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-          <div class="p-6">
-            <!-- Header: Avatar y nombre en la misma línea -->
-            <div class="flex items-center gap-3 mb-4">
-              <app-pet-avatar [pet]="pet" size="lg" />
-              <h3 class="text-xl font-semibold text-gray-900 flex-1">{{ pet.name }}</h3>
+        <div class="group relative bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 border border-gray-100">
+          <!-- Gradient overlay on hover -->
+          <div class="absolute inset-0 bg-gradient-to-br from-indigo-50/0 to-purple-50/0 group-hover:from-indigo-50/50 group-hover:to-purple-50/50 transition-all duration-300 pointer-events-none"></div>
+          
+          <div class="relative p-6">
+            <!-- Header: Avatar y nombre con mejor diseño -->
+            <div class="flex items-center gap-4 mb-5">
+              <div class="relative">
+                <app-pet-avatar [pet]="pet" size="lg" [clickable]="true" (avatarClick)="onAvatarClick(pet)" />
+              </div>
+              <div class="flex-1 min-w-0">
+                <h3 class="text-2xl font-bold text-gray-900 mb-1 truncate">{{ pet.name }}</h3>
+                <p class="text-sm text-gray-500">{{ pet.species }}</p>
+              </div>
             </div>
             
-            <!-- Especie, Raza y Edad en la misma línea -->
-            <div class="flex items-center gap-4 mb-4 px-2 py-2 bg-gray-50 rounded-lg">
-              <div class="flex items-center gap-1">
-                <span class="text-xs font-medium text-gray-700">Especie:</span>
-                <span class="text-xs text-gray-900">{{ pet.species }}</span>
-              </div>
+            <!-- Especie, Raza y Edad con mejor diseño -->
+            <div class="flex flex-wrap items-center gap-3 mb-5 px-3 py-2.5 bg-gradient-to-r from-gray-50 to-indigo-50/30 rounded-xl border border-gray-100">
               @if (pet.breed) {
-                <div class="flex items-center gap-1">
-                  <span class="text-xs font-medium text-gray-700">Raza:</span>
-                  <span class="text-xs text-gray-900">{{ pet.breed }}</span>
+                <div class="flex items-center gap-1.5 px-2 py-1 bg-white/80 rounded-lg shadow-sm">
+                  <svg class="w-3.5 h-3.5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                  </svg>
+                  <span class="text-xs font-semibold text-gray-700">{{ pet.breed }}</span>
                 </div>
               }
               @if (pet.age) {
-                <div class="flex items-center gap-1">
-                  <span class="text-xs font-medium text-gray-700">Edad:</span>
-                  <span class="text-xs text-gray-900">{{ pet.age }} años</span>
+                <div class="flex items-center gap-1.5 px-2 py-1 bg-white/80 rounded-lg shadow-sm">
+                  <svg class="w-3.5 h-3.5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span class="text-xs font-semibold text-gray-700">{{ pet.age }} años</span>
                 </div>
               }
             </div>
 
             <!-- Última Sesión: Ocupa todo el ancho -->
-            <div class="mb-4">
-              <app-last-session [petId]="pet.id" [showDetailsButton]="true" />
-            </div>
-            <div class="mt-4">
-              <button
-                (click)="togglePetDetails(pet.id)"
-                [disabled]="isButtonLoading(pet.id)"
-                class="w-full text-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                @if (isButtonLoading(pet.id)) {
-                  <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  <span>Cargando...</span>
-                } @else if (isPetExpanded(pet.id)) {
-                  <span>Ocultar Detalles</span>
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
-                  </svg>
-                } @else {
-                  <span>Ver Detalles</span>
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                  </svg>
-                }
-              </button>
+            <div class="mb-5">
+              <app-last-session [petId]="pet.id" [showDetailsButton]="false" />
             </div>
           </div>
-
-          <!-- Panel de detalles expandible -->
-          @if (isPetExpanded(pet.id)) {
-            <div class="border-t border-gray-200 bg-gray-50">
-              <div class="p-4">
-                <app-pets-detail [petId]="pet.id" [isModal]="false" />
-              </div>
-            </div>
-          }
         </div>
       }
     </div>
@@ -112,5 +86,22 @@
       (cancelled)="closeModal()"
     />
   </app-modal>
+
+  <!-- Modal para actualizar foto -->
+  @if (petForPhoto()) {
+    <app-modal
+      [show]="showPhotoModal()"
+      [title]="'Actualizar Foto de ' + petForPhoto()!.name"
+      [size]="'md'"
+      (close)="closePhotoModal()"
+    >
+      <div class="space-y-4">
+        <app-photo-upload
+          [petId]="petForPhoto()!.id"
+          (photoUploaded)="onPhotoUploaded($event)"
+        />
+      </div>
+    </app-modal>
+  }
 </div>
 

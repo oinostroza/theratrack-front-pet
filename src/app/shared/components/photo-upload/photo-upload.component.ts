@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { PhotosService } from '../../../features/photos/services/photos.service';
 import { LoadingComponent } from '../loading/loading.component';
 import { ErrorDisplayComponent } from '../error-display/error-display.component';
+import { Photo } from '../../../core/models/photo.model';
 
 @Component({
   selector: 'app-photo-upload',
@@ -18,7 +19,7 @@ export class PhotoUploadComponent {
   @Input() careSessionId?: string;
   @Input() sessionReportId?: string;
   @Input() accept: string = 'image/*';
-  @Output() photoUploaded = new EventEmitter<string>();
+  @Output() photoUploaded = new EventEmitter<Photo>();
   @Output() photoSelected = new EventEmitter<File>();
 
   readonly isLoading = this.photosService.isLoading;
@@ -52,7 +53,7 @@ export class PhotoUploadComponent {
 
     this.photosService.uploadPhoto(photoData).subscribe((photo) => {
       if (photo) {
-        this.photoUploaded.emit(photo.id);
+        this.photoUploaded.emit(photo);
         this.reset();
       }
     });
