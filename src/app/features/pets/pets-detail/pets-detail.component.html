@@ -12,7 +12,8 @@
     <app-loading message="Cargando mascota..." />
   } @else if (error()) {
     <app-error-display [message]="error()!" />
-  } @else if (selectedPet(); as pet) {
+  } @else if (selectedPet()) {
+    @let pet = selectedPet()!;
     <div class="bg-white rounded-lg shadow-md overflow-hidden">
       <!-- Header con avatar y nombre -->
       <div class="bg-gradient-to-r from-indigo-500 to-purple-600 p-6">
