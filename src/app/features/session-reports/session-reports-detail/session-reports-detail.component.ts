@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, OnChanges, SimpleChanges, inject, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { SessionReportsService } from '../services/session-reports.service';
@@ -13,7 +13,10 @@ import { DateUtil } from '../../../core/utils/date.util';
   templateUrl: './session-reports-detail.component.html',
   styleUrl: './session-reports-detail.component.css'
 })
-export class SessionReportsDetailComponent implements OnInit {
+export class SessionReportsDetailComponent implements OnInit, OnChanges {
+  @Input() reportId?: string;
+  @Input() isModal: boolean = false;
+
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly sessionReportsService = inject(SessionReportsService);
@@ -25,9 +28,15 @@ export class SessionReportsDetailComponent implements OnInit {
   readonly DateUtil = DateUtil;
 
   ngOnInit(): void {
-    const reportId = this.route.snapshot.paramMap.get('id');
+    const reportId = this.reportId || this.route.snapshot.paramMap.get('id');
     if (reportId) {
       this.sessionReportsService.getReportById(reportId).subscribe();
+    }
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['reportId'] && this.reportId) {
+      this.sessionReportsService.getReportById(this.reportId).subscribe();
     }
   }
 

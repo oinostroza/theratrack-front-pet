@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { UsersService } from '../services/users.service';
 import { LoadingComponent } from '../../../shared/components/loading/loading.component';
@@ -16,10 +16,17 @@ export class UsersListComponent implements OnInit {
   private readonly usersService = inject(UsersService);
   private readonly authService = inject(AuthService);
 
-  readonly users = this.usersService.users;
+  readonly allUsers = this.usersService.users;
   readonly isLoading = this.usersService.isLoading;
   readonly error = this.usersService.error;
   readonly currentUser = this.authService.user;
+
+  // Filtrar usuarios: solo admin, owner, sitter (excluir therapist y patient)
+  readonly users = computed(() => {
+    return this.allUsers().filter(user => 
+      user.role === 'admin' || user.role === 'owner' || user.role === 'sitter'
+    );
+  });
 
   // Estado para mostrar/ocultar contraseñas
   readonly showPasswords = new Map<string, boolean>();

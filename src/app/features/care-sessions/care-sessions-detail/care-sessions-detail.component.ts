@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, OnChanges, SimpleChanges, inject, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { CareSessionsService } from '../services/care-sessions.service';
@@ -14,7 +14,10 @@ import { StatusUtil } from '../../../core/utils/status.util';
   templateUrl: './care-sessions-detail.component.html',
   styleUrl: './care-sessions-detail.component.css'
 })
-export class CareSessionsDetailComponent implements OnInit {
+export class CareSessionsDetailComponent implements OnInit, OnChanges {
+  @Input() sessionId?: string;
+  @Input() isModal: boolean = false;
+
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly careSessionsService = inject(CareSessionsService);
@@ -27,9 +30,15 @@ export class CareSessionsDetailComponent implements OnInit {
   readonly StatusUtil = StatusUtil;
 
   ngOnInit(): void {
-    const sessionId = this.route.snapshot.paramMap.get('id');
+    const sessionId = this.sessionId || this.route.snapshot.paramMap.get('id');
     if (sessionId) {
       this.careSessionsService.getSessionById(sessionId).subscribe();
+    }
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['sessionId'] && this.sessionId) {
+      this.careSessionsService.getSessionById(this.sessionId).subscribe();
     }
   }
 

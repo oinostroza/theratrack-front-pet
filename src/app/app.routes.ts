@@ -25,17 +25,8 @@ export const routes: Routes = [
         loadComponent: () => import('./features/users/users-list/users-list.component').then(m => m.UsersListComponent)
       },
       {
-        path: 'patients',
-        children: [
-          {
-            path: '',
-            loadComponent: () => import('./features/patients/patients-list/patients-list.component').then(m => m.PatientsListComponent)
-          },
-          {
-            path: ':id',
-            loadComponent: () => import('./features/patients/patients-detail/patients-detail.component').then(m => m.PatientsDetailComponent)
-          }
-        ]
+        path: 'owners',
+        loadComponent: () => import('./features/owners/owners-list/owners-list.component').then(m => m.OwnersListComponent)
       },
       {
         path: 'calendar',

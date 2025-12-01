@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, OnChanges, SimpleChanges, inject, signal, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { forkJoin } from 'rxjs';
@@ -23,7 +23,10 @@ import { SessionReport } from '../../../core/models/session-report.model';
   templateUrl: './pets-detail.component.html',
   styleUrl: './pets-detail.component.css'
 })
-export class PetsDetailComponent implements OnInit {
+export class PetsDetailComponent implements OnInit, OnChanges {
+  @Input() petId?: string;
+  @Input() isModal: boolean = false;
+
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly petsService = inject(PetsService);
@@ -45,14 +48,24 @@ export class PetsDetailComponent implements OnInit {
   readonly LocationUtil = LocationUtil;
 
   ngOnInit(): void {
-    const petId = this.route.snapshot.paramMap.get('id');
+    const petId = this.petId || this.route.snapshot.paramMap.get('id');
     if (petId) {
-      this.petsService.getPetById(petId).subscribe((pet) => {
-        if (pet) {
-          this.loadRelatedData(pet.id);
-        }
-      });
+      this.loadPetData(petId);
     }
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['petId'] && this.petId) {
+      this.loadPetData(this.petId);
+    }
+  }
+
+  private loadPetData(petId: string): void {
+    this.petsService.getPetById(petId).subscribe((pet) => {
+      if (pet) {
+        this.loadRelatedData(pet.id);
+      }
+    });
   }
 
   private loadRelatedData(petId: string): void {

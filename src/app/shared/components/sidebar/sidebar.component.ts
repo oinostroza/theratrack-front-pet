@@ -31,7 +31,7 @@ export class SidebarComponent {
   readonly navItems: NavItem[] = [
     { route: '/dashboard', label: 'Dashboard', icon: '📊', roles: ['owner', 'sitter', 'admin'] },
     { route: '/users', label: 'Usuarios', icon: '👤', adminOnly: true },
-    { route: '/patients', label: 'Dueños', icon: '👥', adminOnly: true },
+    { route: '/owners', label: 'Dueños', icon: '👥', adminOnly: true },
     { route: '/calendar', label: 'Calendario', icon: '📅', roles: ['owner', 'sitter', 'admin'] },
     { route: '/pets', label: 'Mascotas', icon: '🐾', roles: ['owner', 'sitter', 'admin'] },
     { route: '/care-sessions', label: 'Sesiones de Cuidado', icon: '💼', roles: ['owner', 'sitter', 'admin'] },

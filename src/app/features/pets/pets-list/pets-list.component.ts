@@ -6,6 +6,7 @@ import { LoadingComponent } from '../../../shared/components/loading/loading.com
 import { ErrorDisplayComponent } from '../../../shared/components/error-display/error-display.component';
 import { ModalComponent } from '../../../shared/components/modal/modal.component';
 import { PetsFormComponent } from '../pets-form/pets-form.component';
+import { PetsDetailComponent } from '../pets-detail/pets-detail.component';
 import { PetAvatarComponent } from '../../../shared/components/pet-avatar/pet-avatar.component';
 import { Pet } from '../../../core/models/pet.model';
 
@@ -19,6 +20,7 @@ import { Pet } from '../../../core/models/pet.model';
     ErrorDisplayComponent,
     ModalComponent,
     PetsFormComponent,
+    PetsDetailComponent,
     PetAvatarComponent
   ],
   templateUrl: './pets-list.component.html',
@@ -33,7 +35,9 @@ export class PetsListComponent implements OnInit {
 
   // Estado del modal
   readonly showModal = signal<boolean>(false);
+  readonly showDetailModal = signal<boolean>(false);
   readonly editingPet = signal<Pet | null>(null);
+  readonly selectedPet = signal<Pet | null>(null);
 
   ngOnInit(): void {
     this.petsService.getPets().subscribe();
@@ -58,6 +62,18 @@ export class PetsListComponent implements OnInit {
     this.closeModal();
     // Recargar la lista
     this.petsService.getPets().subscribe();
+  }
+
+  openDetailModal(pet: Pet): void {
+    this.selectedPet.set(pet);
+    this.petsService.getPetById(pet.id).subscribe(() => {
+      this.showDetailModal.set(true);
+    });
+  }
+
+  closeDetailModal(): void {
+    this.showDetailModal.set(false);
+    this.selectedPet.set(null);
   }
 }
 

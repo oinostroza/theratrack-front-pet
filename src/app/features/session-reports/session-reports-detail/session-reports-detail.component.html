@@ -1,12 +1,14 @@
 <div class="space-y-6">
-  <div class="flex items-center justify-between">
-    <a
-      routerLink="/session-reports"
-      class="text-indigo-600 hover:text-indigo-800 text-sm font-medium"
-    >
-      ← Volver a reportes
-    </a>
-  </div>
+  @if (!isModal) {
+    <div class="flex items-center justify-between">
+      <a
+        routerLink="/session-reports"
+        class="text-indigo-600 hover:text-indigo-800 text-sm font-medium"
+      >
+        ← Volver a reportes
+      </a>
+    </div>
+  }
 
   @if (isLoading()) {
     <app-loading message="Cargando reporte..." />
