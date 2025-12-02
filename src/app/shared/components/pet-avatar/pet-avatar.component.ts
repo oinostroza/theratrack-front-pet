@@ -1,6 +1,7 @@
 import { Component, Input, Output, EventEmitter, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Pet } from '../../../core/models/pet.model';
+import { getPhotoUrl } from '../../../core/utils/photo.util';
 
 @Component({
   selector: 'app-pet-avatar',
@@ -25,7 +26,7 @@ export class PetAvatarComponent {
   });
 
   readonly avatarUrl = computed(() => {
-    return this.pet?.photoUrl;
+    return getPhotoUrl(this.pet?.photoUrl) || null;
   });
 
   readonly displayName = computed(() => {

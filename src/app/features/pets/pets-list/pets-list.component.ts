@@ -14,6 +14,7 @@ import { LastSessionComponent } from '../../../shared/components/last-session/la
 import { PhotoUploadComponent } from '../../../shared/components/photo-upload/photo-upload.component';
 import { Pet } from '../../../core/models/pet.model';
 import { Photo } from '../../../core/models/photo.model';
+import { getPhotoUrl } from '../../../core/utils/photo.util';
 
 @Component({
   selector: 'app-pets-list',
@@ -48,7 +49,9 @@ export class PetsListComponent implements OnInit {
   // Estado del modal de foto
   readonly showPhotoModal = signal<boolean>(false);
   readonly petForPhoto = signal<Pet | null>(null);
-  
+  readonly availablePhotos = signal<Photo[]>([]);
+  readonly selectedPhotoId = signal<string | null>(null);
+  readonly isLoadingPhotos = signal<boolean>(false);
 
   ngOnInit(): void {
     // Cargar mascotas y sesiones de una vez para que LastSessionComponent pueda usar el caché
@@ -87,21 +90,51 @@ export class PetsListComponent implements OnInit {
     this.petsService.getPets().subscribe();
   }
 
+  openModal(): void {
+    this.openNewModal();
+  }
+
+  getPhotoUrl = getPhotoUrl;
 
   onAvatarClick(pet: Pet): void {
     this.petForPhoto.set(pet);
+    this.selectedPhotoId.set(null);
     this.showPhotoModal.set(true);
+    // Cargar fotos disponibles del pet
+    this.loadAvailablePhotos(pet.id);
   }
 
   closePhotoModal(): void {
     this.showPhotoModal.set(false);
     this.petForPhoto.set(null);
+    this.selectedPhotoId.set(null);
+    this.availablePhotos.set([]);
+  }
+
+  loadAvailablePhotos(petId: string): void {
+    this.isLoadingPhotos.set(true);
+    this.photosService.getPhotosByPetId(petId).subscribe({
+      next: (photos) => {
+        this.availablePhotos.set(photos);
+        this.isLoadingPhotos.set(false);
+      },
+      error: () => {
+        this.isLoadingPhotos.set(false);
+      }
+    });
+  }
+
+  selectExistingPhoto(photo: Photo): void {
+    this.selectedPhotoId.set(photo.id);
   }
 
   onPhotoUploaded(photo: Photo): void {
     const pet = this.petForPhoto();
     if (pet && photo && photo.url) {
-      // Actualizar la mascota con la nueva foto
+      // Agregar la nueva foto a la lista de fotos disponibles
+      this.availablePhotos.update(photos => [...photos, photo]);
+      
+      // Actualizar la mascota con la nueva foto como avatar
       this.petsService.updatePet(pet.id, { photoUrl: photo.url }).subscribe({
         next: () => {
           this.closePhotoModal();
@@ -112,6 +145,29 @@ export class PetsListComponent implements OnInit {
           console.error('Error al actualizar foto:', error);
         }
       });
+    }
+  }
+
+  saveSelectedPhoto(): void {
+    const pet = this.petForPhoto();
+    const selectedId = this.selectedPhotoId();
+    
+    if (!pet) return;
+
+    // Si se seleccionó una foto existente
+    if (selectedId) {
+      const selectedPhoto = this.availablePhotos().find(p => p.id === selectedId);
+      if (selectedPhoto && selectedPhoto.url) {
+        this.petsService.updatePet(pet.id, { photoUrl: selectedPhoto.url }).subscribe({
+          next: () => {
+            this.closePhotoModal();
+            this.petsService.getPets().subscribe();
+          },
+          error: (error) => {
+            console.error('Error al actualizar foto:', error);
+          }
+        });
+      }
     }
   }
 }
