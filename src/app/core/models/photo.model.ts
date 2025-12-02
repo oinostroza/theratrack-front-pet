@@ -19,6 +19,7 @@ export interface CreatePhotoRequest {
   sessionReportId?: string;
   description?: string;
   tags?: string[];
+  folder?: 'avatars' | 'sessions'; // Carpeta donde se guardará la foto
 }
 
 export interface UpdatePhotoRequest {

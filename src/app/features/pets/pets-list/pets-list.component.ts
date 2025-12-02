@@ -14,7 +14,7 @@ import { LastSessionComponent } from '../../../shared/components/last-session/la
 import { PhotoUploadComponent } from '../../../shared/components/photo-upload/photo-upload.component';
 import { Pet } from '../../../core/models/pet.model';
 import { Photo } from '../../../core/models/photo.model';
-import { getPhotoUrl } from '../../../core/utils/photo.util';
+import { PhotoStorageService } from '../../../core/services/photo-storage.service';
 
 @Component({
   selector: 'app-pets-list',
@@ -37,6 +37,7 @@ export class PetsListComponent implements OnInit {
   private readonly petsService = inject(PetsService);
   private readonly careSessionsService = inject(CareSessionsService);
   private readonly photosService = inject(PhotosService);
+  private readonly photoStorage = inject(PhotoStorageService);
 
   readonly pets = this.petsService.pets;
   readonly isLoading = this.petsService.isLoading;
@@ -52,6 +53,7 @@ export class PetsListComponent implements OnInit {
   readonly availablePhotos = signal<Photo[]>([]);
   readonly selectedPhotoId = signal<string | null>(null);
   readonly isLoadingPhotos = signal<boolean>(false);
+  readonly photoUrls = signal<Map<string, string>>(new Map()); // Cache de URLs de fotos
 
   ngOnInit(): void {
     // Cargar mascotas y sesiones de una vez para que LastSessionComponent pueda usar el caché
@@ -94,7 +96,24 @@ export class PetsListComponent implements OnInit {
     this.openNewModal();
   }
 
-  getPhotoUrl = getPhotoUrl;
+  async getPhotoUrl(url: string | undefined | null): Promise<string | null> {
+    if (!url) return null;
+    
+    // Si ya es una URL absoluta o blob URL, retornarla tal cual
+    if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('blob:')) {
+      return url;
+    }
+    
+    // Cargar desde IndexedDB
+    const parts = url.split('/');
+    if (parts.length === 3 && parts[0] === 'photos') {
+      const folder = parts[1] as 'avatars' | 'sessions';
+      const filename = parts[2];
+      return await this.photoStorage.getPhotoUrl(filename, folder);
+    }
+    
+    return null;
+  }
 
   onAvatarClick(pet: Pet): void {
     this.petForPhoto.set(pet);
@@ -114,14 +133,38 @@ export class PetsListComponent implements OnInit {
   loadAvailablePhotos(petId: string): void {
     this.isLoadingPhotos.set(true);
     this.photosService.getPhotosByPetId(petId).subscribe({
-      next: (photos) => {
+      next: async (photos) => {
         this.availablePhotos.set(photos);
+        // Cargar URLs de todas las fotos
+        const urlMap = new Map<string, string>();
+        for (const photo of photos) {
+          const url = photo.thumbnailUrl || photo.url;
+          if (url) {
+            const blobUrl = await this.getPhotoUrl(url);
+            if (blobUrl) {
+              urlMap.set(photo.id, blobUrl);
+            }
+          }
+        }
+        this.photoUrls.set(urlMap);
         this.isLoadingPhotos.set(false);
       },
       error: () => {
         this.isLoadingPhotos.set(false);
       }
     });
+  }
+
+  getPhotoUrlForPhoto(photoId: string): string | null {
+    return this.photoUrls().get(photoId) || null;
+  }
+
+  getPhotoUrlForPet(photoUrl: string | undefined | null): string | null {
+    if (!photoUrl) return null;
+    // Si ya es blob URL, retornarla
+    if (photoUrl.startsWith('blob:')) return photoUrl;
+    // Buscar en cache
+    return this.photoUrls().get('current-avatar') || null;
   }
 
   selectExistingPhoto(photo: Photo): void {

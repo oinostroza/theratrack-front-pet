@@ -1,7 +1,7 @@
-import { Component, Input, Output, EventEmitter, computed, signal } from '@angular/core';
+import { Component, Input, Output, EventEmitter, computed, signal, inject, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Pet } from '../../../core/models/pet.model';
-import { getPhotoUrl } from '../../../core/utils/photo.util';
+import { PhotoStorageService } from '../../../core/services/photo-storage.service';
 
 @Component({
   selector: 'app-pet-avatar',
@@ -11,10 +11,14 @@ import { getPhotoUrl } from '../../../core/utils/photo.util';
   styleUrl: './pet-avatar.component.css'
 })
 export class PetAvatarComponent {
+  private readonly photoStorage = inject(PhotoStorageService);
+  
   @Input() pet?: Pet | { id: string; name: string; photoUrl?: string };
   @Input() size: 'sm' | 'md' | 'lg' = 'md';
   @Input() clickable: boolean = false;
   @Output() avatarClick = new EventEmitter<Pet | { id: string; name: string; photoUrl?: string }>();
+
+  private readonly _avatarUrl = signal<string | null>(null);
 
   readonly sizeClasses = computed(() => {
     const sizes = {
@@ -25,9 +29,38 @@ export class PetAvatarComponent {
     return sizes[this.size];
   });
 
-  readonly avatarUrl = computed(() => {
-    return getPhotoUrl(this.pet?.photoUrl) || null;
-  });
+  readonly avatarUrl = this._avatarUrl.asReadonly();
+
+  constructor() {
+    // Cargar la foto cuando cambie el pet
+    effect(() => {
+      const photoUrl = this.pet?.photoUrl;
+      if (!photoUrl) {
+        this._avatarUrl.set(null);
+        return;
+      }
+      
+      // Si ya es una URL absoluta o blob URL, usarla directamente
+      if (photoUrl.startsWith('http://') || photoUrl.startsWith('https://') || photoUrl.startsWith('blob:')) {
+        this._avatarUrl.set(photoUrl);
+        return;
+      }
+      
+      // Cargar desde IndexedDB
+      const parts = photoUrl.split('/');
+      if (parts.length === 3 && parts[0] === 'photos') {
+        const folder = parts[1] as 'avatars' | 'sessions';
+        const filename = parts[2];
+        this.photoStorage.getPhotoUrl(filename, folder).then(blobUrl => {
+          this._avatarUrl.set(blobUrl);
+        }).catch(() => {
+          this._avatarUrl.set(null);
+        });
+      } else {
+        this._avatarUrl.set(null);
+      }
+    });
+  }
 
   readonly displayName = computed(() => {
     return this.pet?.name?.charAt(0)?.toUpperCase() || '?';

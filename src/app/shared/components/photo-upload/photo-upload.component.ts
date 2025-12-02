@@ -18,6 +18,7 @@ export class PhotoUploadComponent {
   @Input() petId?: string;
   @Input() careSessionId?: string;
   @Input() sessionReportId?: string;
+  @Input() folder?: 'avatars' | 'sessions'; // Carpeta donde guardar la foto
   @Input() accept: string = 'image/*';
   @Output() photoUploaded = new EventEmitter<Photo>();
   @Output() photoSelected = new EventEmitter<File>();
@@ -44,11 +45,15 @@ export class PhotoUploadComponent {
   uploadPhoto(): void {
     if (!this.selectedFile) return;
 
+    // Determinar la carpeta: 'avatars' si es para un pet sin careSessionId, 'sessions' si tiene careSessionId
+    const folder: 'avatars' | 'sessions' = this.folder || (this.careSessionId ? 'sessions' : 'avatars');
+
     const photoData = {
       file: this.selectedFile,
       petId: this.petId,
       careSessionId: this.careSessionId,
-      sessionReportId: this.sessionReportId
+      sessionReportId: this.sessionReportId,
+      folder: folder
     };
 
     this.photosService.uploadPhoto(photoData).subscribe((photo) => {

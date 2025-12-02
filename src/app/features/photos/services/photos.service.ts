@@ -1,12 +1,13 @@
 import { Injectable, signal, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap, catchError, of, map } from 'rxjs';
+import { Observable, tap, catchError, of, map, from, switchMap } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { API_ENDPOINTS } from '../../../core/constants/api.constants';
 import { LoggerService } from '../../../core/services/logger.service';
 import { ErrorHandlerUtil } from '../../../core/utils/error-handler.util';
 import { RoleFilterService } from '../../../core/services/role-filter.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { PhotoStorageService } from '../../../core/services/photo-storage.service';
 import { PetsService } from '../../pets/services/pets.service';
 import { CareSessionsService } from '../../care-sessions/services/care-sessions.service';
 import { Photo, CreatePhotoRequest, UpdatePhotoRequest } from '../../../core/models/photo.model';
@@ -21,6 +22,7 @@ export class PhotosService {
   private readonly authService = inject(AuthService);
   private readonly petsService = inject(PetsService);
   private readonly careSessionsService = inject(CareSessionsService);
+  private readonly photoStorage = inject(PhotoStorageService);
 
   // Signals para estado reactivo
   private readonly _photos = signal<Photo[]>([]);
@@ -139,6 +141,7 @@ export class PhotosService {
 
   /**
    * Sube una nueva foto
+   * Guarda el archivo localmente y envía los metadatos al backend
    */
   uploadPhoto(photoData: CreatePhotoRequest): Observable<Photo | null> {
     this._isLoading.set(true);
@@ -159,26 +162,45 @@ export class PhotosService {
       return of(null);
     }
 
-    const formData = new FormData();
-    formData.append('file', photoData.file);
-    // El backend espera uploadedBy como número
-    formData.append('uploadedBy', uploadedById.toString());
-    // El backend ahora genera la URL automáticamente, no necesitamos enviarla
-    if (photoData.petId) formData.append('petId', photoData.petId);
-    if (photoData.careSessionId) formData.append('careSessionId', photoData.careSessionId);
-    if (photoData.sessionReportId) formData.append('sessionReportId', photoData.sessionReportId);
-    if (photoData.description) formData.append('description', photoData.description);
-    if (photoData.tags) formData.append('tags', JSON.stringify(photoData.tags));
+    // Determinar la carpeta: 'avatars' si es para un pet sin careSessionId, 'sessions' si tiene careSessionId
+    const folder: 'avatars' | 'sessions' = photoData.folder || (photoData.careSessionId ? 'sessions' : 'avatars');
 
-    return this.http.post<Photo>(`${environment.apiUrl}${API_ENDPOINTS.PHOTOS}`, formData).pipe(
-      tap((photo) => {
-        this._photos.update(photos => [...photos, photo]);
-        this.logger.info('Foto subida', { id: photo.id });
+    // Guardar archivo localmente primero
+    return from(this.photoStorage.savePhoto(photoData.file, folder)).pipe(
+      switchMap((filename) => {
+        // Enviar metadatos al backend
+        const createPhotoDto = {
+          filename: filename,
+          folder: folder,
+          uploadedBy: uploadedById,
+          petId: photoData.petId,
+          careSessionId: photoData.careSessionId,
+          sessionReportId: photoData.sessionReportId,
+          description: photoData.description,
+          tags: photoData.tags
+        };
+
+        return this.http.post<Photo>(`${environment.apiUrl}${API_ENDPOINTS.PHOTOS}`, createPhotoDto).pipe(
+          tap((photo) => {
+            this._photos.update(photos => [...photos, photo]);
+            this.logger.info('Foto subida y guardada localmente', { id: photo.id, filename });
+          }),
+          catchError((error) => {
+            // Si falla el backend, eliminar el archivo local
+            this.photoStorage.deletePhoto(filename, folder).catch(err => 
+              this.logger.error('Error al eliminar foto local después de fallo', err)
+            );
+            const errorInfo = ErrorHandlerUtil.getErrorMessage(error);
+            this._error.set(errorInfo.userFriendlyMessage);
+            this.logger.error('Error al subir foto', errorInfo);
+            return of(null);
+          })
+        );
       }),
       catchError((error) => {
         const errorInfo = ErrorHandlerUtil.getErrorMessage(error);
-        this._error.set(errorInfo.userFriendlyMessage);
-        this.logger.error('Error al subir foto', errorInfo);
+        this._error.set(errorInfo.userFriendlyMessage || 'Error al guardar foto localmente');
+        this.logger.error('Error al guardar foto localmente', errorInfo);
         return of(null);
       }),
       tap(() => this._isLoading.set(false))
