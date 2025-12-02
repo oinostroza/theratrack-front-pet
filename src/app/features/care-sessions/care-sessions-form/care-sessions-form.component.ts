@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, OnChanges, SimpleChanges, Input, Output, EventEmitter, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
@@ -15,19 +15,22 @@ import { DateUtil } from '../../../core/utils/date.util';
   templateUrl: './care-sessions-form.component.html',
   styleUrl: './care-sessions-form.component.css'
 })
-export class CareSessionsFormComponent implements OnInit {
+export class CareSessionsFormComponent implements OnInit, OnChanges {
   private readonly fb = inject(FormBuilder);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly careSessionsService = inject(CareSessionsService);
   private readonly petsService = inject(PetsService);
 
+  @Input() sessionId?: string | null;
+  @Input() isModal: boolean = false;
+  @Output() formClosed = new EventEmitter<void>();
+
   sessionForm: FormGroup;
   readonly isLoading = this.careSessionsService.isLoading;
   readonly error = this.careSessionsService.error;
   readonly pets = this.petsService.pets;
   isEditMode = false;
-  sessionId: string | null = null;
 
   readonly DateUtil = DateUtil;
 
@@ -43,13 +46,29 @@ export class CareSessionsFormComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.sessionId = this.route.snapshot.paramMap.get('id');
+    // Si no viene sessionId como input, intentar obtenerlo de la ruta
+    if (!this.sessionId) {
+      this.sessionId = this.route.snapshot.paramMap.get('id');
+    }
     this.isEditMode = !!this.sessionId;
 
     // Cargar mascotas
     this.petsService.getPets().subscribe();
 
     if (this.isEditMode && this.sessionId) {
+      this.loadSession();
+    }
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['sessionId'] && this.sessionId) {
+      this.isEditMode = true;
+      this.loadSession();
+    }
+  }
+
+  loadSession(): void {
+    if (this.sessionId) {
       this.careSessionsService.getSessionById(this.sessionId).subscribe((session) => {
         if (session) {
           this.sessionForm.patchValue({
@@ -76,13 +95,21 @@ export class CareSessionsFormComponent implements OnInit {
     if (this.isEditMode && this.sessionId) {
       this.careSessionsService.updateSession(this.sessionId, formValue).subscribe((session) => {
         if (session) {
-          this.router.navigate(['/care-sessions', session.id]);
+          if (this.isModal) {
+            this.formClosed.emit();
+          } else {
+            this.router.navigate(['/care-sessions', session.id]);
+          }
         }
       });
     } else {
       this.careSessionsService.createSession(formValue).subscribe((session) => {
         if (session) {
-          this.router.navigate(['/care-sessions', session.id]);
+          if (this.isModal) {
+            this.formClosed.emit();
+          } else {
+            this.router.navigate(['/care-sessions', session.id]);
+          }
         }
       });
     }
