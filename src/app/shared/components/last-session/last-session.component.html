@@ -5,6 +5,22 @@
     <div class="absolute bottom-0 left-0 w-16 h-16 bg-gradient-to-tr from-blue-200/20 to-indigo-200/20 rounded-full -ml-8 -mb-8"></div>
     
     <div class="relative z-10">
+      <!-- Header con información del dueño (si está en contexto de mascota) -->
+      @if (petId && session.owner) {
+        <div class="mb-4 pb-3 border-b border-indigo-200 bg-white/60 rounded-lg p-3 backdrop-blur-sm">
+          <h3 class="text-lg font-bold text-gray-900 mb-1">
+            {{ session.owner.name || session.owner.email }}
+          </h3>
+          @if (sessionLocation()) {
+            <p class="text-sm text-gray-600 font-medium">
+              {{ sessionLocation()!.address }}{{ sessionLocation()!.address.toLowerCase().includes('chile') ? '' : ', Chile' }}
+            </p>
+          } @else {
+            <p class="text-sm text-gray-500 italic">Cargando dirección...</p>
+          }
+        </div>
+      }
+      
       <!-- Header con botón de expandir -->
       <div class="flex items-start justify-between mb-3">
         <div class="flex items-center gap-2">
@@ -63,7 +79,7 @@
             <span>Cuidador: {{ session.sitter.name || session.sitter.email }}</span>
           </div>
         }
-      </div>
+      </div> 
 
       <!-- Sección expandible con detalles -->
       @if (isExpanded()) {

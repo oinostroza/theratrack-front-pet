@@ -23,6 +23,9 @@ export interface SessionReport {
 
 export interface CreateSessionReportRequest {
   careSessionId: string;
+  petId: string;
+  sitterId: string;
+  reportDate: string; // ISO 8601 date string
   activities: string[];
   notes: string;
   mood?: SessionReport['mood'];

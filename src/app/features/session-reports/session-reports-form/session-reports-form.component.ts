@@ -4,8 +4,10 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormArray } fr
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { SessionReportsService } from '../services/session-reports.service';
 import { CareSessionsService } from '../../care-sessions/services/care-sessions.service';
+import { PetsService } from '../../pets/services/pets.service';
 import { LoadingComponent } from '../../../shared/components/loading/loading.component';
 import { ErrorDisplayComponent } from '../../../shared/components/error-display/error-display.component';
+import { DateUtil } from '../../../core/utils/date.util';
 
 @Component({
   selector: 'app-session-reports-form',
@@ -20,13 +22,17 @@ export class SessionReportsFormComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly sessionReportsService = inject(SessionReportsService);
   private readonly careSessionsService = inject(CareSessionsService);
+  private readonly petsService = inject(PetsService);
 
   reportForm: FormGroup;
   readonly isLoading = this.sessionReportsService.isLoading;
   readonly error = this.sessionReportsService.error;
   readonly sessions = this.careSessionsService.sessions;
+  readonly pets = this.petsService.pets;
   isEditMode = false;
   reportId: string | null = null;
+  
+  readonly DateUtil = DateUtil;
 
   constructor() {
     this.reportForm = this.fb.group({
@@ -52,6 +58,7 @@ export class SessionReportsFormComponent implements OnInit {
     this.isEditMode = !!this.reportId;
 
     this.careSessionsService.getSessions().subscribe();
+    this.petsService.getPets().subscribe();
 
     if (this.isEditMode && this.reportId) {
       this.sessionReportsService.getReportById(this.reportId).subscribe((report) => {
@@ -90,10 +97,49 @@ export class SessionReportsFormComponent implements OnInit {
       return;
     }
 
-    const formValue = {
+    const careSessionId = this.reportForm.value.careSessionId;
+    if (!careSessionId) {
+      return;
+    }
+
+    // Buscar la sesión seleccionada para obtener petId y sitterId
+    const selectedSession = this.sessions().find(s => s.id === careSessionId);
+    if (!selectedSession) {
+      console.error('Sesión no encontrada');
+      return;
+    }
+
+    // Preparar los datos del formulario
+    const formValue: any = {
       ...this.reportForm.value,
+      petId: selectedSession.petId,
+      sitterId: selectedSession.sitterId,
+      reportDate: new Date().toISOString(), // Fecha actual en formato ISO 8601
       activities: this.activities.value.filter((a: string) => a.trim() !== '')
     };
+
+    // Limpiar objetos vacíos de feeding y medication
+    // Si feeding está vacío o incompleto, no enviarlo
+    if (formValue.feeding) {
+      const feeding = formValue.feeding;
+      if (!feeding.time && !feeding.amount && !feeding.foodType) {
+        delete formValue.feeding;
+      } else if (!feeding.time || !feeding.amount || !feeding.foodType) {
+        // Si alguno de los campos está vacío, eliminar el objeto completo
+        delete formValue.feeding;
+      }
+    }
+
+    // Si medication está vacío o incompleto, no enviarlo
+    if (formValue.medication) {
+      const medication = formValue.medication;
+      if (!medication.time && !medication.medication && !medication.dosage) {
+        delete formValue.medication;
+      } else if (!medication.time || !medication.medication || !medication.dosage) {
+        // Si alguno de los campos está vacío, eliminar el objeto completo
+        delete formValue.medication;
+      }
+    }
 
     if (this.isEditMode && this.reportId) {
       this.sessionReportsService.updateReport(this.reportId, formValue).subscribe((report) => {
@@ -126,6 +172,17 @@ export class SessionReportsFormComponent implements OnInit {
 
   get notes() {
     return this.reportForm.get('notes');
+  }
+
+  getSessionDisplayText(session: any): string {
+    const pet = this.pets().find(p => p.id === session.petId);
+    const petName = pet?.name || 'Mascota desconocida';
+    const date = DateUtil.formatDateShort(session.startTime);
+    return `${petName} - ${date}`;
+  }
+
+  getSessionId(session: any): string {
+    return session.id;
   }
 }
 

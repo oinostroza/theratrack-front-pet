@@ -57,6 +57,17 @@ export class PetsDetailComponent implements OnInit, OnChanges {
   readonly StatusUtil = StatusUtil;
   readonly LocationUtil = LocationUtil;
 
+  getMoodEmoji(mood?: string): string {
+    const moodMap: Record<string, string> = {
+      'happy': '😊',
+      'calm': '😌',
+      'anxious': '😰',
+      'playful': '😄',
+      'tired': '😴'
+    };
+    return moodMap[mood || ''] || '📊';
+  }
+
   private lastLoadedPetId: string | null = null;
 
   ngOnInit(): void {

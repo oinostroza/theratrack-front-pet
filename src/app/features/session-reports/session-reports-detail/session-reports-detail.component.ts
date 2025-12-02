@@ -27,6 +27,17 @@ export class SessionReportsDetailComponent implements OnInit, OnChanges {
 
   readonly DateUtil = DateUtil;
 
+  getMoodEmoji(mood?: string): string {
+    const moodMap: Record<string, string> = {
+      'happy': '😊',
+      'calm': '😌',
+      'anxious': '😰',
+      'playful': '😄',
+      'tired': '😴'
+    };
+    return moodMap[mood || ''] || '📊';
+  }
+
   ngOnInit(): void {
     const reportId = this.reportId || this.route.snapshot.paramMap.get('id');
     if (reportId) {

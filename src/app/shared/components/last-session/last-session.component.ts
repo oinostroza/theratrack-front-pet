@@ -84,7 +84,22 @@ export class LastSessionComponent {
     if (!wasExpanded) {
       // Cargar datos relacionados cuando se expande
       this.loadSessionDetails();
+    } else if (this.petId && !this.sessionLocation()) {
+      // Si se colapsa y tenemos petId pero no ubicación, intentar cargar ubicación del pet
+      this.loadPetLocation();
     }
+  }
+
+  private loadPetLocation(): void {
+    if (!this.petId) return;
+    
+    this.locationsService.getLocationsByPetId(this.petId).subscribe({
+      next: (locations) => {
+        // Preferir ubicación tipo 'home'
+        const homeLocation = locations.find(loc => loc.type === 'home');
+        this.sessionLocation.set(homeLocation || (locations.length > 0 ? locations[0] : null));
+      }
+    });
   }
 
   private loadSessionDetails(): void {
@@ -94,9 +109,12 @@ export class LastSessionComponent {
     this.isLoadingDetails.set(true);
     
     // Cargar reportes, fotos y ubicaciones
+    // Si tenemos petId, cargar ubicaciones del pet; si no, intentar cargar todas las ubicaciones
     const locationObservable = session.petId 
       ? this.locationsService.getLocationsByPetId(session.petId)
-      : of([]);
+      : (this.petId 
+          ? this.locationsService.getLocationsByPetId(this.petId)
+          : of([]));
     
     forkJoin({
       reports: this.sessionReportsService.getReportsBySessionId(session.id),
@@ -106,8 +124,9 @@ export class LastSessionComponent {
       next: ({ reports, photos, locations }) => {
         this.sessionReport.set(reports.length > 0 ? reports[0] : null);
         this.sessionPhotos.set(photos);
-        // Tomar la primera ubicación del pet
-        this.sessionLocation.set(locations.length > 0 ? locations[0] : null);
+        // Tomar la primera ubicación del pet (preferir tipo 'home')
+        const homeLocation = locations.find(loc => loc.type === 'home');
+        this.sessionLocation.set(homeLocation || (locations.length > 0 ? locations[0] : null));
         this.isLoadingDetails.set(false);
       },
       error: () => {

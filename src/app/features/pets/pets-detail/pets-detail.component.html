@@ -16,15 +16,27 @@
     <app-error-display [message]="error()!" />
   } @else if (selectedPet()) {
     <div class="bg-white rounded-lg shadow-md overflow-hidden">
-      <!-- Header con avatar y nombre -->
-      <div class="bg-gradient-to-r from-indigo-500 to-purple-600 p-6">
-        <div class="flex items-center space-x-4">
-          <app-pet-avatar [pet]="selectedPet()!" size="lg" />
-          <div>
-            <h1 class="text-3xl font-bold text-white">{{ selectedPet()!.name }}</h1>
-            @if (selectedPet()!.owner) {
-              <p class="text-indigo-100 mt-1">Dueño: {{ selectedPet()!.owner!.name || selectedPet()!.owner!.email }}</p>
+      <!-- Header con información del dueño -->
+      <div class="bg-gradient-to-r from-indigo-500 via-purple-600 to-pink-600 p-6">
+        <div class="flex items-start justify-between">
+          <div class="flex-1">
+            <h1 class="text-3xl font-bold text-white mb-2">
+              {{ selectedPet()!.owner?.name || selectedPet()!.owner?.email || 'Dueño' }}
+            </h1>
+            @if (petLocations().length > 0) {
+              <p class="text-indigo-100 text-lg">
+                {{ petLocations()[0].address }}{{ petLocations()[0].address.toLowerCase().includes('chile') ? '' : ', Chile' }}
+              </p>
+            } @else {
+              <p class="text-indigo-100 text-lg">Dirección no disponible</p>
             }
+          </div>
+          <div class="flex items-center space-x-4 ml-6">
+            <app-pet-avatar [pet]="selectedPet()!" size="lg" />
+            <div class="text-right">
+              <h2 class="text-2xl font-bold text-white">{{ selectedPet()!.name }}</h2>
+              <p class="text-indigo-100 text-sm mt-1">Mascota</p>
+            </div>
           </div>
         </div>
       </div>
@@ -131,7 +143,9 @@
                       {{ LocationUtil.getTypeLabel(location.type) }}
                     </span>
                   </div>
-                  <p class="text-sm text-gray-600 mb-3">{{ location.address }}, Chile</p>
+                  <p class="text-sm text-gray-600 mb-3">
+                    {{ location.address }}{{ location.address.toLowerCase().includes('chile') ? '' : ', Chile' }}
+                  </p>
                   <a
                     [routerLink]="['/locations', location.id]"
                     class="inline-flex items-center gap-2 px-3 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors"
@@ -155,21 +169,32 @@
           } @else if (petReports().length === 0) {
             <p class="text-gray-500">No hay reportes registrados</p>
           } @else {
-            <div class="space-y-4">
+            <div class="space-y-3">
               @for (report of petReports(); track report.id) {
-                <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                  <div class="flex items-center justify-between mb-2">
-                    <h3 class="font-semibold text-gray-900">
-                      Reporte del {{ DateUtil.formatDate(report.reportDate) }}
-                    </h3>
-                    <button
-                      (click)="openReportDetailModal(report.id)"
-                      class="px-2 py-1 text-xs bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors"
-                    >
-                      Ver detalles
-                    </button>
+                <div class="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl p-5 border border-indigo-100 hover:shadow-md transition-all">
+                  <div class="flex items-start justify-between mb-3">
+                    <div class="flex-1">
+                      <h3 class="text-lg font-bold text-gray-900 mb-1">Reporte de Sesión</h3>
+                      <p class="text-sm text-gray-600">
+                        <span class="font-medium">Fecha:</span> {{ DateUtil.formatDateShort(report.reportDate) }}
+                      </p>
+                      @if (report.mood) {
+                        <div class="mt-2">
+                          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-white border border-indigo-200">
+                            <span>{{ getMoodEmoji(report.mood) }}</span>
+                            <span class="capitalize">{{ report.mood }}</span>
+                          </span>
+                        </div>
+                      }
+                    </div>
+                    <span class="text-3xl">📊</span>
                   </div>
-                  <p class="text-sm text-gray-600 line-clamp-2">{{ report.notes }}</p>
+                  <button
+                    (click)="openReportDetailModal(report.id)"
+                    class="w-full text-center px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all text-sm font-medium shadow-sm hover:shadow-md"
+                  >
+                    Ver Detalles
+                  </button>
                 </div>
               }
             </div>

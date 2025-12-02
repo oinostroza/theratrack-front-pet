@@ -151,9 +151,19 @@ export class PhotosService {
       return of(null);
     }
 
+    // Convertir user.id a número si es string
+    const uploadedById = typeof user.id === 'string' ? parseInt(user.id, 10) : Number(user.id);
+    if (isNaN(uploadedById)) {
+      this._error.set('ID de usuario inválido');
+      this._isLoading.set(false);
+      return of(null);
+    }
+
     const formData = new FormData();
     formData.append('file', photoData.file);
-    formData.append('uploadedBy', user.id.toString()); // Campo requerido por el backend
+    // El backend espera uploadedBy como número
+    formData.append('uploadedBy', uploadedById.toString());
+    // El backend ahora genera la URL automáticamente, no necesitamos enviarla
     if (photoData.petId) formData.append('petId', photoData.petId);
     if (photoData.careSessionId) formData.append('careSessionId', photoData.careSessionId);
     if (photoData.sessionReportId) formData.append('sessionReportId', photoData.sessionReportId);

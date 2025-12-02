@@ -33,7 +33,9 @@
                 </svg>
                 Dirección
               </dt>
-              <dd class="text-base text-gray-900 font-medium">{{ selectedLocation()!.address }}</dd>
+              <dd class="text-base text-gray-900 font-medium">
+                {{ selectedLocation()!.address }}{{ selectedLocation()!.address.toLowerCase().includes('chile') ? '' : ', Chile' }}
+              </dd>
             </div>
             
             <div class="bg-gray-50 rounded-lg p-4">
