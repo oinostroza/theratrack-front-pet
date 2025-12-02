@@ -65,6 +65,10 @@ export class PhotoStorageService {
     const ext = file.name.split('.').pop() || 'jpg';
     const filename = `${timestamp}-${random}.${ext}`;
 
+    // Primero leer el archivo como ArrayBuffer
+    const arrayBuffer = await this.readFileAsArrayBuffer(file);
+
+    // Luego guardar en IndexedDB con la transacción
     return new Promise((resolve, reject) => {
       if (!this.db) {
         reject(new Error('Database not initialized'));
@@ -74,37 +78,49 @@ export class PhotoStorageService {
       const transaction = this.db.transaction([folder], 'readwrite');
       const store = transaction.objectStore(folder);
 
-      // Leer el archivo como ArrayBuffer
-      const reader = new FileReader();
-      reader.onload = async (e) => {
-        const arrayBuffer = e.target?.result as ArrayBuffer;
-        
-        const photoData = {
-          filename: filename,
-          data: arrayBuffer,
-          mimeType: file.type,
-          size: file.size,
-          uploadedAt: new Date().toISOString()
-        };
-
-        const request = store.add(photoData);
-
-        request.onsuccess = () => {
-          this.logger.info(`Foto guardada: ${filename} en carpeta ${folder}`);
-          resolve(filename);
-        };
-
-        request.onerror = () => {
-          this.logger.error('Error al guardar foto en IndexedDB', request.error);
-          reject(request.error);
-        };
+      const photoData = {
+        filename: filename,
+        data: arrayBuffer,
+        mimeType: file.type,
+        size: file.size,
+        uploadedAt: new Date().toISOString()
       };
 
+      const request = store.add(photoData);
+
+      request.onsuccess = () => {
+        this.logger.info(`Foto guardada: ${filename} en carpeta ${folder}`);
+        resolve(filename);
+      };
+
+      request.onerror = () => {
+        this.logger.error('Error al guardar foto en IndexedDB', request.error);
+        reject(request.error);
+      };
+
+      transaction.onerror = () => {
+        this.logger.error('Error en transacción de IndexedDB', transaction.error);
+        reject(transaction.error);
+      };
+    });
+  }
+
+  /**
+   * Lee un archivo como ArrayBuffer
+   * @param file Archivo a leer
+   * @returns Promise con el ArrayBuffer
+   */
+  private readFileAsArrayBuffer(file: File): Promise<ArrayBuffer> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const arrayBuffer = e.target?.result as ArrayBuffer;
+        resolve(arrayBuffer);
+      };
       reader.onerror = () => {
         this.logger.error('Error al leer archivo', reader.error);
         reject(reader.error);
       };
-
       reader.readAsArrayBuffer(file);
     });
   }
