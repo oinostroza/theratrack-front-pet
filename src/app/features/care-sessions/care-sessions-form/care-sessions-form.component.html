@@ -1,134 +1,212 @@
-<div class="max-w-2xl mx-auto space-y-6">
-  <div class="flex items-center justify-between">
-    <h1 class="text-3xl font-bold text-gray-900">
-      {{ isEditMode ? 'Editar Sesión' : 'Nueva Sesión de Cuidado' }}
-    </h1>
-    <a
-      routerLink="/care-sessions"
-      class="text-indigo-600 hover:text-indigo-800 text-sm font-medium"
-    >
-      ← Volver
-    </a>
+<div class="max-w-4xl mx-auto space-y-6">
+  <!-- Header con gradiente -->
+  <div class="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 rounded-xl p-6 text-white shadow-lg">
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-3xl font-bold mb-2">
+          {{ isEditMode ? 'Editar Sesión' : 'Nueva Sesión de Cuidado' }}
+        </h1>
+        <p class="text-indigo-100 text-sm">Completa la información de la sesión de cuidado</p>
+      </div>
+      @if (!isModal) {
+        <a 
+          routerLink="/care-sessions" 
+          class="px-4 py-2 bg-white/20 hover:bg-white/30 text-white rounded-lg transition-colors flex items-center gap-2 backdrop-blur-sm"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          Volver
+        </a>
+      }
+    </div>
   </div>
 
   @if (isLoading()) {
     <app-loading message="Guardando..." />
   } @else {
-    <form [formGroup]="sessionForm" (ngSubmit)="onSubmit()" class="bg-white rounded-lg shadow-md p-6 space-y-6">
+    <form [formGroup]="sessionForm" (ngSubmit)="onSubmit()" class="bg-white rounded-xl shadow-lg p-8 space-y-6 border border-gray-200">
       @if (error()) {
         <app-error-display [message]="error()!" />
       }
 
-      <div>
-        <label for="petId" class="block text-sm font-medium text-gray-700">
+      <!-- Mascota -->
+      <div class="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl p-6 border border-indigo-100">
+        <label for="petId" class="block text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+          <div class="p-1.5 bg-indigo-100 rounded-lg">
+            <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+            </svg>
+          </div>
           Mascota *
         </label>
-        <select
-          id="petId"
-          formControlName="petId"
+        <select 
+          id="petId" 
+          formControlName="petId" 
           [class.border-red-300]="petId?.invalid && petId?.touched"
-          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+          class="mt-2 block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 sm:text-sm bg-white py-3 px-4 transition-all"
         >
           <option value="">Selecciona una mascota</option>
           @for (pet of pets(); track pet.id) {
-            <option [value]="pet.id">{{ pet.name }}</option>
+            <option [value]="pet.id">{{ pet.name }} - {{ pet.species }}</option>
           }
         </select>
+        @if (petId && petId.value) {
+          <p class="mt-2 text-xs text-gray-500 font-mono">
+            ID: {{ petId.value }}
+          </p>
+        }
         @if (petId?.invalid && petId?.touched) {
-          <p class="mt-1 text-sm text-red-600">La mascota es requerida</p>
+          <p class="mt-2 text-sm text-red-600">La mascota es requerida</p>
         }
       </div>
 
-      <div>
-        <label for="sitterId" class="block text-sm font-medium text-gray-700">
-          ID de Cuidador *
+      <!-- Cuidador -->
+      <div class="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-6 border border-purple-100">
+        <label for="sitterId" class="block text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+          <div class="p-1.5 bg-purple-100 rounded-lg">
+            <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+          </div>
+          Cuidador *
         </label>
-        <input
-          id="sitterId"
-          type="text"
-          formControlName="sitterId"
+        <select 
+          id="sitterId" 
+          formControlName="sitterId" 
           [class.border-red-300]="sitterId?.invalid && sitterId?.touched"
-          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-        />
+          class="mt-2 block w-full rounded-lg border-gray-300 shadow-sm focus:border-purple-500 focus:ring-2 focus:ring-purple-500 sm:text-sm bg-white py-3 px-4 transition-all"
+        >
+          <option value="">Selecciona un cuidador</option>
+          @for (sitter of sitters(); track sitter.id) {
+            <option [value]="sitter.id">{{ sitter.name || sitter.email }}</option>
+          }
+        </select>
+        @if (sitterId && sitterId.value) {
+          <p class="mt-2 text-xs text-gray-500 font-mono">
+            ID: {{ sitterId.value }}
+          </p>
+        }
         @if (sitterId?.invalid && sitterId?.touched) {
-          <p class="mt-1 text-sm text-red-600">El ID de cuidador es requerido</p>
+          <p class="mt-2 text-sm text-red-600">El cuidador es requerido</p>
         }
       </div>
 
-      <div>
-        <label for="startTime" class="block text-sm font-medium text-gray-700">
-          Hora de Inicio *
-        </label>
-        <input
-          id="startTime"
-          type="datetime-local"
-          formControlName="startTime"
-          [class.border-red-300]="startTime?.invalid && startTime?.touched"
-          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-        />
-        @if (startTime?.invalid && startTime?.touched) {
-          <p class="mt-1 text-sm text-red-600">La hora de inicio es requerida</p>
-        }
+      <!-- Fechas y Horas -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Hora de Inicio -->
+        <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-100">
+          <label for="startTime" class="block text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+            <div class="p-1.5 bg-blue-100 rounded-lg">
+              <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            </div>
+            Hora de Inicio *
+          </label>
+          <input
+            id="startTime"
+            type="datetime-local"
+            formControlName="startTime"
+            [class.border-red-300]="startTime?.invalid && startTime?.touched"
+            class="mt-2 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500 sm:text-sm bg-white py-3 px-4 transition-all"
+          />
+          @if (startTime?.invalid && startTime?.touched) {
+            <p class="mt-2 text-sm text-red-600">La hora de inicio es requerida</p>
+          }
+        </div>
+
+        <!-- Hora de Fin -->
+        <div class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 border border-green-100">
+          <label for="endTime" class="block text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+            <div class="p-1.5 bg-green-100 rounded-lg">
+              <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            Hora de Fin
+          </label>
+          <input
+            id="endTime"
+            type="datetime-local"
+            formControlName="endTime"
+            class="mt-2 block w-full rounded-lg border-gray-300 shadow-sm focus:border-green-500 focus:ring-2 focus:ring-green-500 sm:text-sm bg-white py-3 px-4 transition-all"
+          />
+        </div>
       </div>
 
-      <div>
-        <label for="endTime" class="block text-sm font-medium text-gray-700">
-          Hora de Fin
-        </label>
-        <input
-          id="endTime"
-          type="datetime-local"
-          formControlName="endTime"
-          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-        />
-      </div>
-
-      <div>
-        <label for="status" class="block text-sm font-medium text-gray-700">
+      <!-- Estado -->
+      <div class="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-xl p-6 border border-yellow-100">
+        <label for="status" class="block text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+          <div class="p-1.5 bg-yellow-100 rounded-lg">
+            <svg class="w-4 h-4 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
           Estado *
         </label>
         <select
           id="status"
           formControlName="status"
           [class.border-red-300]="status?.invalid && status?.touched"
-          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+          class="mt-2 block w-full rounded-lg border-gray-300 shadow-sm focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500 sm:text-sm bg-white py-3 px-4 transition-all"
         >
           <option value="scheduled">Programada</option>
           <option value="in-progress">En progreso</option>
           <option value="completed">Completada</option>
           <option value="cancelled">Cancelada</option>
         </select>
+        @if (status?.invalid && status?.touched) {
+          <p class="mt-2 text-sm text-red-600">El estado es requerido</p>
+        }
       </div>
 
-      <div>
-        <label for="notes" class="block text-sm font-medium text-gray-700">
+      <!-- Notas -->
+      <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-100">
+        <label for="notes" class="block text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
+          <div class="p-1.5 bg-blue-100 rounded-lg">
+            <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+          </div>
           Notas
         </label>
-        <textarea
-          id="notes"
-          formControlName="notes"
-          rows="4"
-          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+        <textarea 
+          id="notes" 
+          formControlName="notes" 
+          rows="5" 
+          placeholder="Escribe las notas y observaciones de la sesión..."
+          class="mt-2 block w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500 sm:text-sm py-3 px-4 bg-white transition-all resize-none"
         ></textarea>
       </div>
 
-      <div class="flex justify-end space-x-3">
-        <button
-          type="button"
-          routerLink="/care-sessions"
-          class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50"
-        >
-          Cancelar
-        </button>
-        <button
-          type="submit"
+      <!-- Botones de acción -->
+      <div class="flex justify-end gap-4 pt-4 border-t border-gray-200">
+        @if (isModal) {
+          <button 
+            type="button" 
+            (click)="formClosed.emit()"
+            class="px-6 py-3 border-2 border-gray-300 rounded-lg text-gray-700 bg-white hover:bg-gray-50 transition-all font-medium shadow-sm hover:shadow-md"
+          >
+            Cancelar
+          </button>
+        } @else {
+          <button 
+            type="button" 
+            routerLink="/care-sessions"
+            class="px-6 py-3 border-2 border-gray-300 rounded-lg text-gray-700 bg-white hover:bg-gray-50 transition-all font-medium shadow-sm hover:shadow-md"
+          >
+            Cancelar
+          </button>
+        }
+        <button 
+          type="submit" 
           [disabled]="sessionForm.invalid || isLoading()"
-          class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          class="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-medium shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
         >
-          {{ isEditMode ? 'Actualizar' : 'Crear' }}
+          {{ isEditMode ? 'Actualizar Sesión' : 'Crear Sesión' }}
         </button>
       </div>
     </form>
   }
 </div>
-

@@ -1,9 +1,10 @@
-import { Component, OnInit, OnChanges, SimpleChanges, Input, Output, EventEmitter, inject } from '@angular/core';
+import { Component, OnInit, OnChanges, SimpleChanges, Input, Output, EventEmitter, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { CareSessionsService } from '../services/care-sessions.service';
 import { PetsService } from '../../pets/services/pets.service';
+import { UsersService } from '../../users/services/users.service';
 import { LoadingComponent } from '../../../shared/components/loading/loading.component';
 import { ErrorDisplayComponent } from '../../../shared/components/error-display/error-display.component';
 import { DateUtil } from '../../../core/utils/date.util';
@@ -21,6 +22,7 @@ export class CareSessionsFormComponent implements OnInit, OnChanges {
   private readonly router = inject(Router);
   private readonly careSessionsService = inject(CareSessionsService);
   private readonly petsService = inject(PetsService);
+  private readonly usersService = inject(UsersService);
 
   @Input() sessionId?: string | null;
   @Input() isModal: boolean = false;
@@ -30,9 +32,15 @@ export class CareSessionsFormComponent implements OnInit, OnChanges {
   readonly isLoading = this.careSessionsService.isLoading;
   readonly error = this.careSessionsService.error;
   readonly pets = this.petsService.pets;
+  readonly allUsers = this.usersService.users;
   isEditMode = false;
 
   readonly DateUtil = DateUtil;
+
+  // Filtrar solo sitters
+  readonly sitters = computed(() => {
+    return this.allUsers().filter(user => user.role === 'sitter');
+  });
 
   constructor() {
     this.sessionForm = this.fb.group({
@@ -52,8 +60,9 @@ export class CareSessionsFormComponent implements OnInit, OnChanges {
     }
     this.isEditMode = !!this.sessionId;
 
-    // Cargar mascotas
+    // Cargar mascotas y usuarios (para obtener sitters)
     this.petsService.getPets().subscribe();
+    this.usersService.getUsers().subscribe();
 
     if (this.isEditMode && this.sessionId) {
       this.loadSession();

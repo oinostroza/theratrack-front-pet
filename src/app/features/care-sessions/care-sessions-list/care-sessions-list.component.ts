@@ -30,9 +30,9 @@ export class CareSessionsListComponent implements OnInit {
   readonly searchTerm = signal<string>('');
   readonly showDetailModal = signal<boolean>(false);
   readonly selectedSessionId = signal<string | null>(null);
-  readonly showNewModal = signal<boolean>(false);
   readonly showEditModal = signal<boolean>(false);
   readonly selectedEditSessionId = signal<string | null>(null);
+  readonly openMenuId = signal<string | null>(null);
 
   readonly DateUtil = DateUtil;
   readonly StatusUtil = StatusUtil;
@@ -88,14 +88,16 @@ export class CareSessionsListComponent implements OnInit {
     this.selectedSessionId.set(null);
   }
 
-  openNewModal(): void {
-    this.showNewModal.set(true);
+  toggleSessionMenu(sessionId: string): void {
+    if (this.openMenuId() === sessionId) {
+      this.openMenuId.set(null);
+    } else {
+      this.openMenuId.set(sessionId);
+    }
   }
 
-  closeNewModal(): void {
-    this.showNewModal.set(false);
-    // Recargar sesiones después de crear
-    this.careSessionsService.getSessions().subscribe();
+  closeSessionMenu(): void {
+    this.openMenuId.set(null);
   }
 
   openEditModal(sessionId: string): void {
