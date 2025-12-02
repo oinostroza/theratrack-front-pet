@@ -4,12 +4,13 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { LocationsService } from '../services/locations.service';
 import { LoadingComponent } from '../../../shared/components/loading/loading.component';
 import { ErrorDisplayComponent } from '../../../shared/components/error-display/error-display.component';
+import { MapViewComponent } from '../../../shared/components/map-view/map-view.component';
 import { LocationUtil } from '../../../core/utils/location.util';
 
 @Component({
   selector: 'app-locations-detail',
   standalone: true,
-  imports: [CommonModule, RouterModule, LoadingComponent, ErrorDisplayComponent],
+  imports: [CommonModule, RouterModule, LoadingComponent, ErrorDisplayComponent, MapViewComponent],
   templateUrl: './locations-detail.component.html',
   styleUrl: './locations-detail.component.css'
 })

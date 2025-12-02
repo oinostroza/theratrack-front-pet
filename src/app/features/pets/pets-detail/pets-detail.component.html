@@ -124,14 +124,23 @@
           } @else {
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               @for (location of petLocations(); track location.id) {
-                <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                  <div class="flex items-center justify-between mb-2">
+                <div class="bg-white rounded-lg p-4 border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+                  <div class="flex items-center justify-between mb-3">
                     <h3 class="font-semibold text-gray-900">{{ location.name }}</h3>
                     <span [class]="'px-2 py-1 text-xs font-semibold rounded-full ' + LocationUtil.getTypeColor(location.type)">
                       {{ LocationUtil.getTypeLabel(location.type) }}
                     </span>
                   </div>
-                  <p class="text-sm text-gray-600">{{ location.address }}</p>
+                  <p class="text-sm text-gray-600 mb-3">{{ location.address }}, Chile</p>
+                  <a
+                    [routerLink]="['/locations', location.id]"
+                    class="inline-flex items-center gap-2 px-3 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                    </svg>
+                    Ver en Mapa
+                  </a>
                 </div>
               }
             </div>

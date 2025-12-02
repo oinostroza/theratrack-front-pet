@@ -3,9 +3,12 @@
     <div class="flex items-center justify-between">
       <a
         routerLink="/care-sessions"
-        class="text-indigo-600 hover:text-indigo-800 text-sm font-medium"
+        class="text-indigo-600 hover:text-indigo-800 text-sm font-medium flex items-center gap-2"
       >
-        ← Volver a sesiones
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        Volver a sesiones
       </a>
     </div>
   }
@@ -15,77 +18,172 @@
   } @else if (error()) {
     <app-error-display [message]="error()!" />
   } @else if (selectedSession()) {
-    <div class="bg-white rounded-lg shadow-md overflow-hidden">
-      <div class="p-6">
-        <div class="flex items-center justify-between mb-6">
-          <h1 class="text-3xl font-bold text-gray-900">Sesión de Cuidado</h1>
+    <div class="bg-gradient-to-br from-white via-indigo-50/30 to-purple-50/30 rounded-xl shadow-lg overflow-hidden border border-indigo-100">
+      <!-- Header con botones -->
+      <div class="bg-white/80 backdrop-blur-sm border-b border-gray-200 p-6">
+        <div class="flex items-center justify-between">
+          <div>
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">Sesión de Cuidado</h1>
+            <div class="flex items-center gap-3">
+              <span [class]="'px-3 py-1 text-sm font-semibold rounded-full ' + StatusUtil.getStatusColor(selectedSession()!.status)">
+                {{ StatusUtil.getStatusLabel(selectedSession()!.status) }}
+              </span>
+              @if (selectedSession()!.paid) {
+                <span class="px-3 py-1 text-sm font-semibold rounded-full bg-green-100 text-green-800">
+                  Pagado
+                </span>
+              } @else {
+                <span class="px-3 py-1 text-sm font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                  Pendiente
+                </span>
+              }
+            </div>
+          </div>
           <div class="flex space-x-2">
             <button
               [routerLink]="['/care-sessions', selectedSession()!.id, 'edit']"
-              class="px-2 py-1 text-xs bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors"
+              class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2"
             >
-              ✏️ Editar
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+              Editar
             </button>
             <button
               (click)="deleteSession()"
-              class="px-2 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+              class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2"
             >
-              🗑️ Eliminar
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+              Eliminar
             </button>
           </div>
         </div>
+      </div>
 
+      <div class="p-6 space-y-6">
+        <!-- Información de la Mascota -->
+        @if (selectedSession()!.pet) {
+          <div class="bg-white rounded-xl p-6 shadow-md border border-gray-100">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+              </svg>
+              Mascota
+            </h2>
+            <div class="flex items-center gap-4">
+              <app-pet-avatar [pet]="selectedSession()!.pet" size="lg" />
+              <div>
+                <h3 class="text-lg font-bold text-gray-900">{{ selectedSession()!.pet?.name }}</h3>
+                <div class="flex flex-wrap gap-2 mt-2">
+                  @if (selectedSession()!.pet?.species) {
+                    <span class="px-2 py-1 bg-indigo-100 text-indigo-800 text-xs font-semibold rounded-full">
+                      {{ selectedSession()!.pet?.species }}
+                    </span>
+                  }
+                  @if (selectedSession()!.pet?.breed) {
+                    <span class="px-2 py-1 bg-purple-100 text-purple-800 text-xs font-semibold rounded-full">
+                      {{ selectedSession()!.pet?.breed }}
+                    </span>
+                  }
+                  @if (selectedSession()!.pet?.age) {
+                    <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-semibold rounded-full">
+                      {{ selectedSession()!.pet?.age }} años
+                    </span>
+                  }
+                </div>
+              </div>
+            </div>
+          </div>
+        }
+
+        <!-- Información de la Sesión -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <h2 class="text-lg font-semibold text-gray-900 mb-4">Información</h2>
-            <dl class="space-y-3">
-              <div>
-                <dt class="text-sm font-medium text-gray-500">ID de Mascota</dt>
-                <dd class="mt-1 text-sm text-gray-900">{{ selectedSession()!.petId }}</dd>
-              </div>
-              <div>
-                <dt class="text-sm font-medium text-gray-500">ID de Cuidador</dt>
-                <dd class="mt-1 text-sm text-gray-900">{{ selectedSession()!.sitterId }}</dd>
-              </div>
-              <div>
-                <dt class="text-sm font-medium text-gray-500">Hora de Inicio</dt>
-                <dd class="mt-1 text-sm text-gray-900">{{ DateUtil.formatDate(selectedSession()!.startTime) }}</dd>
+          <div class="bg-white rounded-xl p-6 shadow-md border border-gray-100">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Información de la Sesión
+            </h2>
+            <dl class="space-y-4">
+              <div class="bg-gray-50 rounded-lg p-4">
+                <dt class="text-sm font-semibold text-gray-700 mb-1 flex items-center gap-2">
+                  <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  Fecha y Hora de Inicio
+                </dt>
+                <dd class="text-base text-gray-900 font-medium">{{ DateUtil.formatDate(selectedSession()!.startTime) }}</dd>
               </div>
               @if (selectedSession()!.endTime) {
-                <div>
-                  <dt class="text-sm font-medium text-gray-500">Hora de Fin</dt>
-                  <dd class="mt-1 text-sm text-gray-900">{{ DateUtil.formatDate(selectedSession()!.endTime) }}</dd>
+                <div class="bg-gray-50 rounded-lg p-4">
+                  <dt class="text-sm font-semibold text-gray-700 mb-1 flex items-center gap-2">
+                    <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Fecha y Hora de Fin
+                  </dt>
+                  <dd class="text-base text-gray-900 font-medium">{{ DateUtil.formatDate(selectedSession()!.endTime) }}</dd>
                 </div>
               }
-              <div>
-                <dt class="text-sm font-medium text-gray-500">Estado</dt>
-                <dd class="mt-1">
-                  <span [class]="'px-2 inline-flex text-xs leading-5 font-semibold rounded-full ' + StatusUtil.getStatusColor(selectedSession()!.status)">
-                    {{ StatusUtil.getStatusLabel(selectedSession()!.status) }}
-                  </span>
-                </dd>
-              </div> 
-            </dl>
+              @if (selectedSession()!.sitter) {
+                <div class="bg-gray-50 rounded-lg p-4">
+                  <dt class="text-sm font-semibold text-gray-700 mb-1 flex items-center gap-2">
+                    <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    Cuidador
+                  </dt>
+                  <dd class="text-base text-gray-900 font-medium">{{ selectedSession()!.sitter?.name || selectedSession()!.sitter?.email }}</dd>
+                </div>
+              }
+            </dl> 
           </div>
+
           @if (selectedSession()!.notes) {
-            <div>
-              <h2 class="text-lg font-semibold text-gray-900 mb-4">Notas</h2>
-              <p class="text-sm text-gray-700 whitespace-pre-wrap">{{ selectedSession()!.notes }}</p>
+            <div class="bg-white rounded-xl p-6 shadow-md border border-gray-100">
+              <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                Notas
+              </h2>
+              <p class="text-sm text-gray-700 whitespace-pre-wrap bg-gray-50 rounded-lg p-4">{{ selectedSession()!.notes }}</p>
             </div>
           }
         </div>
+
+        <!-- Último Paseo -->
+        @if (selectedSession()!.pet?.id) {
+          <div class="bg-white rounded-xl p-6 shadow-md border border-gray-100">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+              </svg>
+              Último Paseo
+            </h2>
+            <app-last-session [petId]="selectedSession()!.pet!.id" [showDetailsButton]="false" />
+          </div>
+        }
       </div>
     </div>
   } @else {
-    <div class="text-center py-12">
-      <p class="text-gray-500 text-lg">Sesión no encontrada</p>
+    <div class="text-center py-12 bg-white rounded-xl shadow-lg">
+      <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      <p class="text-gray-500 text-lg mb-4">Sesión no encontrada</p>
       <a
         routerLink="/care-sessions"
-        class="mt-4 inline-block px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+        class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
       >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
         Volver a sesiones
       </a>
     </div>
   }
 </div>
-

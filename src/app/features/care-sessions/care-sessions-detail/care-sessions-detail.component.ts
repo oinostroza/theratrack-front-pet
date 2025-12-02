@@ -4,13 +4,15 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { CareSessionsService } from '../services/care-sessions.service';
 import { LoadingComponent } from '../../../shared/components/loading/loading.component';
 import { ErrorDisplayComponent } from '../../../shared/components/error-display/error-display.component';
+import { PetAvatarComponent } from '../../../shared/components/pet-avatar/pet-avatar.component';
+import { LastSessionComponent } from '../../../shared/components/last-session/last-session.component';
 import { DateUtil } from '../../../core/utils/date.util';
 import { StatusUtil } from '../../../core/utils/status.util';
 
 @Component({
   selector: 'app-care-sessions-detail',
   standalone: true,
-  imports: [CommonModule, RouterModule, LoadingComponent, ErrorDisplayComponent],
+  imports: [CommonModule, RouterModule, LoadingComponent, ErrorDisplayComponent, PetAvatarComponent, LastSessionComponent],
   templateUrl: './care-sessions-detail.component.html',
   styleUrl: './care-sessions-detail.component.css'
 })
