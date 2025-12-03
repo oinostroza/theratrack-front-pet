@@ -1,37 +1,63 @@
-<header class="bg-white shadow-sm border-b border-gray-200">
+<header class="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 shadow-lg">
   <div class="flex items-center justify-between px-4 md:px-6 py-4">
     <div class="flex items-center gap-3">
       <!-- Botón hamburguesa solo en móvil -->
       <button
         (click)="onToggleSidebar()"
-        class="md:hidden p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+        class="md:hidden p-2 text-white hover:bg-white/20 rounded-lg transition-all duration-200 hover:scale-105"
         aria-label="Abrir menú"
       >
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
         </svg>
       </button>
-      <h1 class="text-xl md:text-2xl font-bold text-gray-900">PetTrack</h1>
+      <!-- Logo con gradiente -->
+      <div class="flex items-center gap-2">
+        <div class="bg-white/20 backdrop-blur-sm p-2 rounded-lg">
+          <svg class="w-6 h-6 md:w-7 md:h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+          </svg>
+        </div>
+        <h1 class="text-xl md:text-2xl font-bold bg-gradient-to-r from-white to-yellow-200 bg-clip-text text-transparent drop-shadow-lg">
+          PetTrack
+        </h1>
+      </div>
     </div>
 
     @if (isAuthenticated()) {
-      <div class="flex items-center space-x-4">
-        <div class="flex items-center space-x-3">
-          <div class="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center">
-            <span class="text-indigo-600 text-sm font-medium">
+      <div class="flex items-center space-x-3 md:space-x-4">
+        <!-- Información del usuario -->
+        <div class="flex items-center space-x-3 bg-white/10 backdrop-blur-sm rounded-lg px-3 py-2 border border-white/20">
+          <!-- Avatar con gradiente -->
+          <div class="h-10 w-10 rounded-full bg-gradient-to-br from-yellow-400 via-pink-500 to-purple-600 flex items-center justify-center shadow-lg ring-2 ring-white/50">
+            <span class="text-white text-sm font-bold">
               {{ user()?.name?.charAt(0)?.toUpperCase() || 'U' }}
             </span>
           </div>
           <div class="hidden md:block">
-            <p class="text-sm font-medium text-gray-900">{{ user()?.name }}</p>
-            <p class="text-xs text-gray-500">{{ user()?.email }}</p>
+            <div class="flex items-center gap-2">
+              <p class="text-sm font-semibold text-white">{{ user()?.name || 'Usuario' }}</p>
+              @if (user()?.role) {
+                <span class="px-2 py-0.5 text-xs font-medium rounded-full bg-white/20 text-white border border-white/30">
+                  {{ getRoleLabel(user()?.role) }}
+                </span>
+              }
+            </div>
+            <p class="text-xs text-white/80">{{ user()?.email }}</p>
           </div>
         </div>
+        <!-- Botón de logout -->
         <button
           (click)="logout()"
-          class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          class="px-4 py-2 text-sm font-medium text-white bg-white/20 hover:bg-white/30 backdrop-blur-sm border border-white/30 rounded-lg transition-all duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-white/50 shadow-lg hover:shadow-xl"
         >
-          Cerrar Sesión
+          <span class="flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+            <span class="hidden sm:inline">Cerrar Sesión</span>
+            <span class="sm:hidden">Salir</span>
+          </span>
         </button>
       </div>
     }

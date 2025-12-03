@@ -19,6 +19,20 @@ export class HeaderComponent {
   readonly user = this.authService.user;
   readonly isAuthenticated = this.authService.isAuthenticated;
 
+  /**
+   * Obtiene el label del rol en español
+   */
+  getRoleLabel(role?: string): string {
+    const roleMap: Record<string, string> = {
+      'admin': 'Admin',
+      'owner': 'Dueño',
+      'sitter': 'Cuidador',
+      'therapist': 'Terapeuta',
+      'patient': 'Paciente'
+    };
+    return role ? roleMap[role] || role : 'Usuario';
+  }
+
   logout(): void {
     this.authService.logout();
   }

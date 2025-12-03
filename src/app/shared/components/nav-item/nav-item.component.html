@@ -1,13 +1,13 @@
 <a
   [routerLink]="route"
-  routerLinkActive="bg-indigo-50 text-indigo-600"
+  routerLinkActive="bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg"
   [routerLinkActiveOptions]="{ exact: exact }"
   (click)="onNavigate()"
-  class="flex items-center px-4 py-2 text-sm font-medium text-gray-700 rounded-md hover:bg-gray-50 hover:text-gray-900 transition-colors"
+  class="flex items-center px-4 py-3 text-sm font-medium text-indigo-700 rounded-lg hover:bg-gradient-to-r hover:from-indigo-100 hover:to-purple-100 hover:text-indigo-900 transition-all duration-200 hover:shadow-md hover:scale-[1.02] group"
 >
   @if (icon) {
-    <span class="mr-3">{{ icon }}</span>
+    <span class="mr-3 text-lg group-hover:scale-110 transition-transform duration-200">{{ icon }}</span>
   }
-  {{ label }}
+  <span class="font-semibold">{{ label }}</span>
 </a>
 

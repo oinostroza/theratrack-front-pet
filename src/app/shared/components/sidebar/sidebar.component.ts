@@ -28,7 +28,6 @@ export class SidebarComponent {
   private readonly roleFilter = inject(RoleFilterService);
   
   readonly user = this.authService.user;
-  readonly isAuthenticated = this.authService.isAuthenticated;
 
   // Items de navegación - Todas las rutas disponibles con iconos mejorados
   readonly navItems: NavItem[] = [
@@ -60,9 +59,5 @@ export class SidebarComponent {
       return this.roleFilter.canAccessRoute(item.route);
     });
   });
-
-  logout(): void {
-    this.authService.logout();
-  }
 }
 

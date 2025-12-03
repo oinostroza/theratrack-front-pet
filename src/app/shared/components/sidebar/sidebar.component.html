@@ -1,11 +1,9 @@
-<div class="flex flex-col h-full bg-white overflow-y-auto">
-  <!-- Logo/Header con botón cerrar en móvil -->
-  <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-    <h1 class="text-xl font-bold text-gray-900">PetTrack</h1>
-    <!-- Botón cerrar solo en móvil -->
+<div class="flex flex-col h-full bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 overflow-y-auto shadow-xl border-r border-indigo-100/50">
+  <!-- Botón cerrar solo en móvil -->
+  <div class="flex items-center justify-end px-4 py-3 md:hidden border-b border-indigo-200/50 bg-white/30 backdrop-blur-sm">
     <button
       (click)="close.emit()"
-      class="md:hidden p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+      class="p-2 text-indigo-700 hover:text-white hover:bg-gradient-to-r hover:from-indigo-500 hover:to-purple-500 rounded-lg transition-all duration-200 hover:scale-110 shadow-md"
       aria-label="Cerrar menú"
     >
       <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -14,27 +12,8 @@
     </button>
   </div>
 
-  <!-- User Info -->
-  @if (isAuthenticated()) {
-    <div class="px-6 py-4 border-b border-gray-200">
-      <div class="flex items-center">
-        <div class="flex-shrink-0">
-          <div class="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
-            <span class="text-indigo-600 font-medium">
-              {{ user()?.name?.charAt(0)?.toUpperCase() || 'U' }}
-            </span>
-          </div>
-        </div>
-        <div class="ml-3">
-          <p class="text-sm font-medium text-gray-900">{{ user()?.name }}</p>
-          <p class="text-xs text-gray-500">{{ user()?.email }}</p>
-        </div>
-      </div>
-    </div>
-  }
-
   <!-- Navigation -->
-  <nav class="flex-1 px-4 py-4 space-y-1 overflow-y-auto">
+  <nav class="flex-1 px-3 py-4 space-y-2 overflow-y-auto">
     @for (item of visibleNavItems(); track item.route) {
       <app-nav-item
         [route]="item.route"
@@ -44,18 +23,5 @@
       />
     }
   </nav>
-
-  <!-- Logout -->
-  @if (isAuthenticated()) {
-    <div class="px-4 py-4 border-t border-gray-200">
-      <button
-        (click)="logout()"
-        class="w-full flex items-center px-4 py-2 text-sm font-medium text-gray-700 rounded-md hover:bg-gray-50 hover:text-gray-900 transition-colors"
-      >
-        <span class="mr-3">🚪</span>
-        Cerrar Sesión
-      </button>
-    </div>
-  }
 </div>
 
