@@ -127,14 +127,16 @@ src/
 - Servicios dependen de abstracciones (interfaces)
 - Inyección de dependencias mediante `inject()`
 - `BaseService` proporciona abstracción común
+- Interfaces creadas: `IPetsService`, `ICareSessionsService`, `ISessionReportsService`
 
 ### DRY (Don't Repeat Yourself)
 
-- ✅ **BaseService**: Elimina código duplicado en servicios
+- ✅ **BaseService**: Elimina código duplicado en servicios (todos los servicios principales lo extienden)
 - ✅ **SearchService**: Búsqueda centralizada y reutilizable
-- ✅ **Utilidades compartidas**: DateUtil, ErrorHandlerUtil, PhotoUtil, etc.
+- ✅ **Utilidades compartidas**: DateUtil, ErrorHandlerUtil, PhotoUtil, ImageOptimizationUtil, etc.
 - ✅ **Componentes compartidos**: Modal, Loading, ErrorDisplay, etc.
 - ✅ **Constantes centralizadas**: API_ENDPOINTS, STORAGE_KEYS
+- ✅ **Interfaces**: Contratos comunes para servicios
 
 ### Clean Code
 
@@ -220,7 +222,14 @@ Clase base para servicios que elimina código duplicado.
 // Proporciona:
 - Signals comunes (_items, _selectedItem, _isLoading, _error)
 - Manejo de errores consistente
-- Métodos helper para actualizar items
+- Métodos helper para actualizar items (addItem, updateItem, removeItem)
+- Estado de carga centralizado
+- Selección de items
+
+// Todos los servicios principales extienden BaseService:
+export class PetsService extends BaseService<Pet> {
+  // Código específico del dominio
+}
 ```
 
 ## 🎨 Componentes Compartidos
@@ -409,12 +418,73 @@ El proyecto está configurado para desplegarse automáticamente en GitHub Pages 
 
 ## 📝 Próximas Mejoras
 
-- [ ] Refactorizar servicios para usar `BaseService`
-- [ ] Implementar interfaces para servicios (Dependency Inversion)
-- [ ] Agregar tests unitarios
-- [ ] Implementar PWA (Progressive Web App)
-- [ ] Optimización de imágenes
-- [ ] Internacionalización (i18n)
+- [x] Refactorizar servicios para usar `BaseService` ✅
+- [x] Implementar interfaces para servicios (Dependency Inversion) ✅
+- [x] Agregar tests unitarios básicos ✅
+- [ ] Implementar PWA (Progressive Web App) - Omitido por solicitud del usuario
+- [x] Optimización de imágenes ✅
+- [x] Internacionalización (i18n) - Configuración base ✅
+
+## ✨ Mejoras Implementadas
+
+### Refactorización de Servicios con BaseService
+Todos los servicios principales (`PetsService`, `CareSessionsService`, `SessionReportsService`, `LocationsService`, `PhotosService`) ahora extienden `BaseService<T>`, eliminando código duplicado y siguiendo el principio DRY:
+
+- ✅ Signals comunes (`items`, `selectedItem`, `isLoading`, `error`)
+- ✅ Manejo de errores centralizado
+- ✅ Métodos helper para operaciones CRUD (`addItem`, `updateItem`, `removeItem`)
+- ✅ Reducción significativa de código duplicado
+
+### Interfaces para Servicios (Dependency Inversion)
+Se crearon interfaces para los servicios principales, permitiendo inyección de dependencias basada en abstracciones:
+
+- ✅ `IPetsService` - Interfaz para servicio de mascotas
+- ✅ `ICareSessionsService` - Interfaz para servicio de sesiones
+- ✅ `ISessionReportsService` - Interfaz para servicio de reportes
+
+Esto facilita el testing y permite intercambiar implementaciones sin modificar el código cliente.
+
+### Optimización de Imágenes
+Se implementó `image-optimization.util.ts` con funciones para:
+
+- ✅ Comprimir imágenes automáticamente
+- ✅ Redimensionar manteniendo aspect ratio
+- ✅ Convertir a formatos optimizados (JPEG, WebP)
+- ✅ Validar tipos de archivo
+- ✅ Formatear tamaños de archivo
+
+**Uso:**
+```typescript
+import { optimizeImage } from '@core/utils/image-optimization.util';
+
+const optimizedFile = await optimizeImage(file, {
+  maxWidth: 1920,
+  maxHeight: 1920,
+  quality: 0.8,
+  outputFormat: 'image/jpeg'
+});
+```
+
+### Tests Unitarios
+Se agregaron tests unitarios básicos para servicios usando `HttpClientTestingModule`:
+
+- ✅ `PetsService` - Tests para operaciones CRUD
+- ✅ Manejo de errores
+- ✅ Validación de peticiones HTTP
+
+**Ejecutar tests:**
+```bash
+npm test
+```
+
+### Internacionalización (i18n)
+Se configuró la base para internacionalización con Angular:
+
+- ✅ Archivo de traducciones `messages.es.xlf`
+- ✅ Estructura preparada para múltiples idiomas
+- ✅ Traducciones para textos comunes
+
+**Nota:** La configuración completa de i18n requiere Node.js v18.19+ y puede completarse cuando se actualice la versión de Node.
 
 
 ## 📄 Licencia

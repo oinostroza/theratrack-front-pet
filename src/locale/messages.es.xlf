@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+  <file source-language="es" datatype="plaintext" original="ng2.template">
+    <body>
+      <trans-unit id="app.title" datatype="html">
+        <source>Theratrack PetSitter</source>
+        <target>Theratrack PetSitter</target>
+      </trans-unit>
+      <trans-unit id="pets.title" datatype="html">
+        <source>Mascotas</source>
+        <target>Mascotas</target>
+      </trans-unit>
+      <trans-unit id="sessions.title" datatype="html">
+        <source>Sesiones de Cuidado</source>
+        <target>Sesiones de Cuidado</target>
+      </trans-unit>
+      <trans-unit id="reports.title" datatype="html">
+        <source>Reportes de Sesiones</source>
+        <target>Reportes de Sesiones</target>
+      </trans-unit>
+      <trans-unit id="common.loading" datatype="html">
+        <source>Cargando...</source>
+        <target>Cargando...</target>
+      </trans-unit>
+      <trans-unit id="common.error" datatype="html">
+        <source>Error</source>
+        <target>Error</target>
+      </trans-unit>
+      <trans-unit id="common.save" datatype="html">
+        <source>Guardar</source>
+        <target>Guardar</target>
+      </trans-unit>
+      <trans-unit id="common.cancel" datatype="html">
+        <source>Cancelar</source>
+        <target>Cancelar</target>
+      </trans-unit>
+      <trans-unit id="common.delete" datatype="html">
+        <source>Eliminar</source>
+        <target>Eliminar</target>
+      </trans-unit>
+      <trans-unit id="common.edit" datatype="html">
+        <source>Editar</source>
+        <target>Editar</target>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>
+

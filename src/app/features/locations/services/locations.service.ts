@@ -1,53 +1,43 @@
-import { Injectable, signal, inject } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap, catchError, of, map } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { API_ENDPOINTS } from '../../../core/constants/api.constants';
 import { LoggerService } from '../../../core/services/logger.service';
-import { ErrorHandlerUtil } from '../../../core/utils/error-handler.util';
+import { BaseService } from '../../../core/services/base.service';
 import { RoleFilterService } from '../../../core/services/role-filter.service';
 import { Location, CreateLocationRequest, UpdateLocationRequest } from '../../../core/models/location.model';
 
 @Injectable({
   providedIn: 'root'
 })
-export class LocationsService {
+export class LocationsService extends BaseService<Location> {
   private readonly http = inject(HttpClient);
-  private readonly logger = inject(LoggerService);
   private readonly roleFilter = inject(RoleFilterService);
 
-  // Signals para estado reactivo
-  private readonly _locations = signal<Location[]>([]);
-  private readonly _selectedLocation = signal<Location | null>(null);
-  private readonly _isLoading = signal<boolean>(false);
-  private readonly _error = signal<string | null>(null);
+  protected getLogger(): LoggerService {
+    return inject(LoggerService);
+  }
 
-  // Readonly signals
-  readonly locations = this._locations.asReadonly();
-  readonly selectedLocation = this._selectedLocation.asReadonly();
-  readonly isLoading = this._isLoading.asReadonly();
-  readonly error = this._error.asReadonly();
+  // Exponer signals con nombres específicos del dominio
+  readonly locations = this.items;
+  readonly selectedLocation = this.selectedItem;
 
   /**
    * Obtiene todas las ubicaciones
    */
   getLocations(): Observable<Location[]> {
-    this._isLoading.set(true);
-    this._error.set(null);
+    this.setLoading(true);
+    this.clearError();
 
     return this.http.get<Location[]>(`${environment.apiUrl}${API_ENDPOINTS.LOCATIONS}`).pipe(
       map((locations) => this.roleFilter.filterLocations(locations)),
       tap((locations) => {
-        this._locations.set(locations);
+        this._items.set(locations);
         this.logger.info('Ubicaciones cargadas', { count: locations.length });
       }),
-      catchError((error) => {
-        const errorInfo = ErrorHandlerUtil.getErrorMessage(error);
-        this._error.set(errorInfo.userFriendlyMessage);
-        this.logger.error('Error al cargar ubicaciones', errorInfo);
-        return of([]);
-      }),
-      tap(() => this._isLoading.set(false))
+      catchError((error) => this.handleError<Location[]>(error, 'cargar ubicaciones').pipe(map(() => []))),
+      tap(() => this.setLoading(false))
     );
   }
 
@@ -55,8 +45,8 @@ export class LocationsService {
    * Obtiene ubicaciones por petId
    */
   getLocationsByPetId(petId: string): Observable<Location[]> {
-    this._isLoading.set(true);
-    this._error.set(null);
+    this.setLoading(true);
+    this.clearError();
 
     return this.http.get<Location[]>(
       `${environment.apiUrl}${API_ENDPOINTS.LOCATIONS}?petId=${petId}`
@@ -64,13 +54,8 @@ export class LocationsService {
       tap((locations) => {
         this.logger.info('Ubicaciones cargadas para mascota', { petId, count: locations.length });
       }),
-      catchError((error) => {
-        const errorInfo = ErrorHandlerUtil.getErrorMessage(error);
-        this._error.set(errorInfo.userFriendlyMessage);
-        this.logger.error('Error al cargar ubicaciones por mascota', errorInfo);
-        return of([]);
-      }),
-      tap(() => this._isLoading.set(false))
+      catchError((error) => this.handleError<Location[]>(error, 'cargar ubicaciones por mascota').pipe(map(() => []))),
+      tap(() => this.setLoading(false))
     );
   }
 
@@ -78,21 +63,16 @@ export class LocationsService {
    * Obtiene una ubicación por ID
    */
   getLocationById(id: string): Observable<Location | null> {
-    this._isLoading.set(true);
-    this._error.set(null);
+    this.setLoading(true);
+    this.clearError();
 
     return this.http.get<Location>(`${environment.apiUrl}${API_ENDPOINTS.LOCATIONS}/${id}`).pipe(
       tap((location) => {
-        this._selectedLocation.set(location);
+        this.selectItem(location);
         this.logger.info('Ubicación cargada', { id: location.id });
       }),
-      catchError((error) => {
-        const errorInfo = ErrorHandlerUtil.getErrorMessage(error);
-        this._error.set(errorInfo.userFriendlyMessage);
-        this.logger.error('Error al cargar ubicación', errorInfo);
-        return of(null);
-      }),
-      tap(() => this._isLoading.set(false))
+      catchError((error) => this.handleError<Location | null>(error, 'cargar ubicación')),
+      tap(() => this.setLoading(false))
     );
   }
 
@@ -100,24 +80,19 @@ export class LocationsService {
    * Crea una nueva ubicación
    */
   createLocation(locationData: CreateLocationRequest): Observable<Location | null> {
-    this._isLoading.set(true);
-    this._error.set(null);
+    this.setLoading(true);
+    this.clearError();
 
     return this.http.post<Location>(
       `${environment.apiUrl}${API_ENDPOINTS.LOCATIONS}`,
       locationData
     ).pipe(
       tap((location) => {
-        this._locations.update(locations => [...locations, location]);
+        this.addItem(location);
         this.logger.info('Ubicación creada', { id: location.id });
       }),
-      catchError((error) => {
-        const errorInfo = ErrorHandlerUtil.getErrorMessage(error);
-        this._error.set(errorInfo.userFriendlyMessage);
-        this.logger.error('Error al crear ubicación', errorInfo);
-        return of(null);
-      }),
-      tap(() => this._isLoading.set(false))
+      catchError((error) => this.handleError<Location | null>(error, 'crear ubicación')),
+      tap(() => this.setLoading(false))
     );
   }
 
@@ -125,25 +100,19 @@ export class LocationsService {
    * Actualiza una ubicación
    */
   updateLocation(id: string, locationData: UpdateLocationRequest): Observable<Location | null> {
-    this._isLoading.set(true);
-    this._error.set(null);
+    this.setLoading(true);
+    this.clearError();
 
     return this.http.patch<Location>(
       `${environment.apiUrl}${API_ENDPOINTS.LOCATIONS}/${id}`,
       locationData
     ).pipe(
       tap((location) => {
-        this._locations.update(locations => locations.map(l => l.id === id ? location : l));
-        this._selectedLocation.set(location);
+        this.updateItem(id, location, (l) => l.id);
         this.logger.info('Ubicación actualizada', { id: location.id });
       }),
-      catchError((error) => {
-        const errorInfo = ErrorHandlerUtil.getErrorMessage(error);
-        this._error.set(errorInfo.userFriendlyMessage);
-        this.logger.error('Error al actualizar ubicación', errorInfo);
-        return of(null);
-      }),
-      tap(() => this._isLoading.set(false))
+      catchError((error) => this.handleError<Location | null>(error, 'actualizar ubicación')),
+      tap(() => this.setLoading(false))
     );
   }
 
@@ -151,24 +120,19 @@ export class LocationsService {
    * Elimina una ubicación
    */
   deleteLocation(id: string): Observable<boolean> {
-    this._isLoading.set(true);
-    this._error.set(null);
+    this.setLoading(true);
+    this.clearError();
 
     return this.http.delete<void>(`${environment.apiUrl}${API_ENDPOINTS.LOCATIONS}/${id}`).pipe(
       tap(() => {
-        this._locations.update(locations => locations.filter(l => l.id !== id));
-        if (this._selectedLocation()?.id === id) {
-          this._selectedLocation.set(null);
-        }
+        this.removeItem(id, (l) => l.id);
         this.logger.info('Ubicación eliminada', { id });
-        this._isLoading.set(false);
+        this.setLoading(false);
       }),
       map(() => true),
       catchError((error) => {
-        const errorInfo = ErrorHandlerUtil.getErrorMessage(error);
-        this._error.set(errorInfo.userFriendlyMessage);
-        this.logger.error('Error al eliminar ubicación', errorInfo);
-        this._isLoading.set(false);
+        this.handleError<boolean>(error, 'eliminar ubicación');
+        this.setLoading(false);
         return of(false);
       })
     );
@@ -178,14 +142,6 @@ export class LocationsService {
    * Selecciona una ubicación
    */
   selectLocation(location: Location | null): void {
-    this._selectedLocation.set(location);
-  }
-
-  /**
-   * Limpia el error
-   */
-  clearError(): void {
-    this._error.set(null);
+    this.selectItem(location);
   }
 }
-

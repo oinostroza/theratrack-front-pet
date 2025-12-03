@@ -1,53 +1,43 @@
-import { Injectable, signal, inject } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap, catchError, of, map } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { API_ENDPOINTS } from '../../../core/constants/api.constants';
 import { LoggerService } from '../../../core/services/logger.service';
-import { ErrorHandlerUtil } from '../../../core/utils/error-handler.util';
+import { BaseService } from '../../../core/services/base.service';
 import { RoleFilterService } from '../../../core/services/role-filter.service';
 import { Pet, CreatePetRequest, UpdatePetRequest } from '../../../core/models/pet.model';
 
 @Injectable({
   providedIn: 'root'
 })
-export class PetsService {
+export class PetsService extends BaseService<Pet> {
   private readonly http = inject(HttpClient);
-  private readonly logger = inject(LoggerService);
   private readonly roleFilter = inject(RoleFilterService);
 
-  // Signals para estado reactivo
-  private readonly _pets = signal<Pet[]>([]);
-  private readonly _selectedPet = signal<Pet | null>(null);
-  private readonly _isLoading = signal<boolean>(false);
-  private readonly _error = signal<string | null>(null);
+  protected getLogger(): LoggerService {
+    return inject(LoggerService);
+  }
 
-  // Readonly signals
-  readonly pets = this._pets.asReadonly();
-  readonly selectedPet = this._selectedPet.asReadonly();
-  readonly isLoading = this._isLoading.asReadonly();
-  readonly error = this._error.asReadonly();
+  // Exponer signals con nombres específicos del dominio
+  readonly pets = this.items;
+  readonly selectedPet = this.selectedItem;
 
   /**
    * Obtiene todas las mascotas
    */
   getPets(): Observable<Pet[]> {
-    this._isLoading.set(true);
-    this._error.set(null);
+    this.setLoading(true);
+    this.clearError();
 
     return this.http.get<Pet[]>(`${environment.apiUrl}${API_ENDPOINTS.PETS}`).pipe(
       map((pets) => this.roleFilter.filterPets(pets)),
       tap((pets) => {
-        this._pets.set(pets);
+        this._items.set(pets);
         this.logger.info('Mascotas cargadas', { count: pets.length });
       }),
-      catchError((error) => {
-        const errorInfo = ErrorHandlerUtil.getErrorMessage(error);
-        this._error.set(errorInfo.userFriendlyMessage);
-        this.logger.error('Error al cargar mascotas', errorInfo);
-        return of([]);
-      }),
-      tap(() => this._isLoading.set(false))
+      catchError((error) => this.handleError<Pet[]>(error, 'cargar mascotas').pipe(map(() => []))),
+      tap(() => this.setLoading(false))
     );
   }
 
@@ -55,21 +45,16 @@ export class PetsService {
    * Obtiene mascotas por ownerId
    */
   getPetsByOwnerId(ownerId: number | string): Observable<Pet[]> {
-    this._isLoading.set(true);
-    this._error.set(null);
+    this.setLoading(true);
+    this.clearError();
 
     return this.http.get<Pet[]>(`${environment.apiUrl}${API_ENDPOINTS.PETS}?ownerId=${ownerId}`).pipe(
       map((pets) => this.roleFilter.filterPets(pets)),
       tap((pets) => {
         this.logger.info('Mascotas cargadas para dueño', { ownerId, count: pets.length });
       }),
-      catchError((error) => {
-        const errorInfo = ErrorHandlerUtil.getErrorMessage(error);
-        this._error.set(errorInfo.userFriendlyMessage);
-        this.logger.error('Error al cargar mascotas por dueño', errorInfo);
-        return of([]);
-      }),
-      tap(() => this._isLoading.set(false))
+      catchError((error) => this.handleError<Pet[]>(error, 'cargar mascotas por dueño').pipe(map(() => []))),
+      tap(() => this.setLoading(false))
     );
   }
 
@@ -77,21 +62,16 @@ export class PetsService {
    * Obtiene una mascota por ID
    */
   getPetById(id: string): Observable<Pet | null> {
-    this._isLoading.set(true);
-    this._error.set(null);
+    this.setLoading(true);
+    this.clearError();
 
     return this.http.get<Pet>(`${environment.apiUrl}${API_ENDPOINTS.PETS}/${id}`).pipe(
       tap((pet) => {
-        this._selectedPet.set(pet);
+        this.selectItem(pet);
         this.logger.info('Mascota cargada', { id: pet.id });
       }),
-      catchError((error) => {
-        const errorInfo = ErrorHandlerUtil.getErrorMessage(error);
-        this._error.set(errorInfo.userFriendlyMessage);
-        this.logger.error('Error al cargar mascota', errorInfo);
-        return of(null);
-      }),
-      tap(() => this._isLoading.set(false))
+      catchError((error) => this.handleError<Pet | null>(error, 'cargar mascota')),
+      tap(() => this.setLoading(false))
     );
   }
 
@@ -99,21 +79,16 @@ export class PetsService {
    * Crea una nueva mascota
    */
   createPet(petData: CreatePetRequest): Observable<Pet | null> {
-    this._isLoading.set(true);
-    this._error.set(null);
+    this.setLoading(true);
+    this.clearError();
 
     return this.http.post<Pet>(`${environment.apiUrl}${API_ENDPOINTS.PETS}`, petData).pipe(
       tap((pet) => {
-        this._pets.update(pets => [...pets, pet]);
+        this.addItem(pet);
         this.logger.info('Mascota creada', { id: pet.id });
       }),
-      catchError((error) => {
-        const errorInfo = ErrorHandlerUtil.getErrorMessage(error);
-        this._error.set(errorInfo.userFriendlyMessage);
-        this.logger.error('Error al crear mascota', errorInfo);
-        return of(null);
-      }),
-      tap(() => this._isLoading.set(false))
+      catchError((error) => this.handleError<Pet | null>(error, 'crear mascota')),
+      tap(() => this.setLoading(false))
     );
   }
 
@@ -121,22 +96,16 @@ export class PetsService {
    * Actualiza una mascota
    */
   updatePet(id: string, petData: UpdatePetRequest): Observable<Pet | null> {
-    this._isLoading.set(true);
-    this._error.set(null);
+    this.setLoading(true);
+    this.clearError();
 
     return this.http.patch<Pet>(`${environment.apiUrl}${API_ENDPOINTS.PETS}/${id}`, petData).pipe(
       tap((pet) => {
-        this._pets.update(pets => pets.map(p => p.id === id ? pet : p));
-        this._selectedPet.set(pet);
+        this.updateItem(id, pet, (p) => p.id);
         this.logger.info('Mascota actualizada', { id: pet.id });
       }),
-      catchError((error) => {
-        const errorInfo = ErrorHandlerUtil.getErrorMessage(error);
-        this._error.set(errorInfo.userFriendlyMessage);
-        this.logger.error('Error al actualizar mascota', errorInfo);
-        return of(null);
-      }),
-      tap(() => this._isLoading.set(false))
+      catchError((error) => this.handleError<Pet | null>(error, 'actualizar mascota')),
+      tap(() => this.setLoading(false))
     );
   }
 
@@ -144,24 +113,19 @@ export class PetsService {
    * Elimina una mascota
    */
   deletePet(id: string): Observable<boolean> {
-    this._isLoading.set(true);
-    this._error.set(null);
+    this.setLoading(true);
+    this.clearError();
 
     return this.http.delete<void>(`${environment.apiUrl}${API_ENDPOINTS.PETS}/${id}`).pipe(
       tap(() => {
-        this._pets.update(pets => pets.filter(p => p.id !== id));
-        if (this._selectedPet()?.id === id) {
-          this._selectedPet.set(null);
-        }
+        this.removeItem(id, (p) => p.id);
         this.logger.info('Mascota eliminada', { id });
-        this._isLoading.set(false);
+        this.setLoading(false);
       }),
       map(() => true),
       catchError((error) => {
-        const errorInfo = ErrorHandlerUtil.getErrorMessage(error);
-        this._error.set(errorInfo.userFriendlyMessage);
-        this.logger.error('Error al eliminar mascota', errorInfo);
-        this._isLoading.set(false);
+        this.handleError<boolean>(error, 'eliminar mascota');
+        this.setLoading(false);
         return of(false);
       })
     );
@@ -171,14 +135,7 @@ export class PetsService {
    * Selecciona una mascota
    */
   selectPet(pet: Pet | null): void {
-    this._selectedPet.set(pet);
-  }
-
-  /**
-   * Limpia el error
-   */
-  clearError(): void {
-    this._error.set(null);
+    this.selectItem(pet);
   }
 }
 

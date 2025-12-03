@@ -1,9 +1,10 @@
-import { Injectable, signal, inject } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap, catchError, of, map } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { API_ENDPOINTS } from '../../../core/constants/api.constants';
 import { LoggerService } from '../../../core/services/logger.service';
+import { BaseService } from '../../../core/services/base.service';
 import { ErrorHandlerUtil } from '../../../core/utils/error-handler.util';
 import { RoleFilterService } from '../../../core/services/role-filter.service';
 import { PetsService } from '../../pets/services/pets.service';
@@ -13,31 +14,26 @@ import { SessionReport, CreateSessionReportRequest, UpdateSessionReportRequest }
 @Injectable({
   providedIn: 'root'
 })
-export class SessionReportsService {
+export class SessionReportsService extends BaseService<SessionReport> {
   private readonly http = inject(HttpClient);
-  private readonly logger = inject(LoggerService);
   private readonly roleFilter = inject(RoleFilterService);
   private readonly petsService = inject(PetsService);
   private readonly careSessionsService = inject(CareSessionsService);
 
-  // Signals para estado reactivo
-  private readonly _reports = signal<SessionReport[]>([]);
-  private readonly _selectedReport = signal<SessionReport | null>(null);
-  private readonly _isLoading = signal<boolean>(false);
-  private readonly _error = signal<string | null>(null);
+  protected getLogger(): LoggerService {
+    return inject(LoggerService);
+  }
 
-  // Readonly signals
-  readonly reports = this._reports.asReadonly();
-  readonly selectedReport = this._selectedReport.asReadonly();
-  readonly isLoading = this._isLoading.asReadonly();
-  readonly error = this._error.asReadonly();
+  // Exponer signals con nombres específicos del dominio
+  readonly reports = this.items;
+  readonly selectedReport = this.selectedItem;
 
   /**
    * Obtiene todos los reportes
    */
   getReports(): Observable<SessionReport[]> {
-    this._isLoading.set(true);
-    this._error.set(null);
+    this.setLoading(true);
+    this.clearError();
 
     return this.http.get<SessionReport[]>(`${environment.apiUrl}${API_ENDPOINTS.SESSION_REPORTS}`).pipe(
       map((reports) => {
@@ -54,16 +50,11 @@ export class SessionReportsService {
         return this.roleFilter.filterSessionReports(reports);
       }),
       tap((reports) => {
-        this._reports.set(reports);
+        this._items.set(reports);
         this.logger.info('Reportes cargados', { count: reports.length });
       }),
-      catchError((error) => {
-        const errorInfo = ErrorHandlerUtil.getErrorMessage(error);
-        this._error.set(errorInfo.userFriendlyMessage);
-        this.logger.error('Error al cargar reportes', errorInfo);
-        return of([]);
-      }),
-      tap(() => this._isLoading.set(false))
+      catchError((error) => this.handleError<SessionReport[]>(error, 'cargar reportes').pipe(map(() => []))),
+      tap(() => this.setLoading(false))
     );
   }
 
@@ -71,8 +62,8 @@ export class SessionReportsService {
    * Obtiene reportes por petId
    */
   getReportsByPetId(petId: string): Observable<SessionReport[]> {
-    this._isLoading.set(true);
-    this._error.set(null);
+    this.setLoading(true);
+    this.clearError();
 
     return this.http.get<SessionReport[]>(
       `${environment.apiUrl}${API_ENDPOINTS.SESSION_REPORTS}?petId=${petId}`
@@ -80,13 +71,8 @@ export class SessionReportsService {
       tap((reports) => {
         this.logger.info('Reportes cargados para mascota', { petId, count: reports.length });
       }),
-      catchError((error) => {
-        const errorInfo = ErrorHandlerUtil.getErrorMessage(error);
-        this._error.set(errorInfo.userFriendlyMessage);
-        this.logger.error('Error al cargar reportes por mascota', errorInfo);
-        return of([]);
-      }),
-      tap(() => this._isLoading.set(false))
+      catchError((error) => this.handleError<SessionReport[]>(error, 'cargar reportes por mascota').pipe(map(() => []))),
+      tap(() => this.setLoading(false))
     );
   }
 
@@ -94,8 +80,8 @@ export class SessionReportsService {
    * Obtiene reportes por careSessionId
    */
   getReportsBySessionId(careSessionId: string): Observable<SessionReport[]> {
-    this._isLoading.set(true);
-    this._error.set(null);
+    this.setLoading(true);
+    this.clearError();
 
     return this.http.get<SessionReport[]>(
       `${environment.apiUrl}${API_ENDPOINTS.SESSION_REPORTS}?careSessionId=${careSessionId}`
@@ -103,13 +89,8 @@ export class SessionReportsService {
       tap((reports) => {
         this.logger.info('Reportes cargados para sesión', { careSessionId, count: reports.length });
       }),
-      catchError((error) => {
-        const errorInfo = ErrorHandlerUtil.getErrorMessage(error);
-        this._error.set(errorInfo.userFriendlyMessage);
-        this.logger.error('Error al cargar reportes por sesión', errorInfo);
-        return of([]);
-      }),
-      tap(() => this._isLoading.set(false))
+      catchError((error) => this.handleError<SessionReport[]>(error, 'cargar reportes por sesión').pipe(map(() => []))),
+      tap(() => this.setLoading(false))
     );
   }
 
@@ -117,21 +98,16 @@ export class SessionReportsService {
    * Obtiene un reporte por ID
    */
   getReportById(id: string): Observable<SessionReport | null> {
-    this._isLoading.set(true);
-    this._error.set(null);
+    this.setLoading(true);
+    this.clearError();
 
     return this.http.get<SessionReport>(`${environment.apiUrl}${API_ENDPOINTS.SESSION_REPORTS}/${id}`).pipe(
       tap((report) => {
-        this._selectedReport.set(report);
+        this.selectItem(report);
         this.logger.info('Reporte cargado', { id: report.id });
       }),
-      catchError((error) => {
-        const errorInfo = ErrorHandlerUtil.getErrorMessage(error);
-        this._error.set(errorInfo.userFriendlyMessage);
-        this.logger.error('Error al cargar reporte', errorInfo);
-        return of(null);
-      }),
-      tap(() => this._isLoading.set(false))
+      catchError((error) => this.handleError<SessionReport | null>(error, 'cargar reporte')),
+      tap(() => this.setLoading(false))
     );
   }
 
@@ -139,24 +115,19 @@ export class SessionReportsService {
    * Crea un nuevo reporte
    */
   createReport(reportData: CreateSessionReportRequest): Observable<SessionReport | null> {
-    this._isLoading.set(true);
-    this._error.set(null);
+    this.setLoading(true);
+    this.clearError();
 
     return this.http.post<SessionReport>(
       `${environment.apiUrl}${API_ENDPOINTS.SESSION_REPORTS}`,
       reportData
     ).pipe(
       tap((report) => {
-        this._reports.update(reports => [...reports, report]);
+        this.addItem(report);
         this.logger.info('Reporte creado', { id: report.id });
       }),
-      catchError((error) => {
-        const errorInfo = ErrorHandlerUtil.getErrorMessage(error);
-        this._error.set(errorInfo.userFriendlyMessage);
-        this.logger.error('Error al crear reporte', errorInfo);
-        return of(null);
-      }),
-      tap(() => this._isLoading.set(false))
+      catchError((error) => this.handleError<SessionReport | null>(error, 'crear reporte')),
+      tap(() => this.setLoading(false))
     );
   }
 
@@ -164,25 +135,19 @@ export class SessionReportsService {
    * Actualiza un reporte
    */
   updateReport(id: string, reportData: UpdateSessionReportRequest): Observable<SessionReport | null> {
-    this._isLoading.set(true);
-    this._error.set(null);
+    this.setLoading(true);
+    this.clearError();
 
     return this.http.patch<SessionReport>(
       `${environment.apiUrl}${API_ENDPOINTS.SESSION_REPORTS}/${id}`,
       reportData
     ).pipe(
       tap((report) => {
-        this._reports.update(reports => reports.map(r => r.id === id ? report : r));
-        this._selectedReport.set(report);
+        this.updateItem(id, report, (r) => r.id);
         this.logger.info('Reporte actualizado', { id: report.id });
       }),
-      catchError((error) => {
-        const errorInfo = ErrorHandlerUtil.getErrorMessage(error);
-        this._error.set(errorInfo.userFriendlyMessage);
-        this.logger.error('Error al actualizar reporte', errorInfo);
-        return of(null);
-      }),
-      tap(() => this._isLoading.set(false))
+      catchError((error) => this.handleError<SessionReport | null>(error, 'actualizar reporte')),
+      tap(() => this.setLoading(false))
     );
   }
 
@@ -190,24 +155,19 @@ export class SessionReportsService {
    * Elimina un reporte
    */
   deleteReport(id: string): Observable<boolean> {
-    this._isLoading.set(true);
-    this._error.set(null);
+    this.setLoading(true);
+    this.clearError();
 
     return this.http.delete<void>(`${environment.apiUrl}${API_ENDPOINTS.SESSION_REPORTS}/${id}`).pipe(
       tap(() => {
-        this._reports.update(reports => reports.filter(r => r.id !== id));
-        if (this._selectedReport()?.id === id) {
-          this._selectedReport.set(null);
-        }
+        this.removeItem(id, (r) => r.id);
         this.logger.info('Reporte eliminado', { id });
-        this._isLoading.set(false);
+        this.setLoading(false);
       }),
       map(() => true),
       catchError((error) => {
-        const errorInfo = ErrorHandlerUtil.getErrorMessage(error);
-        this._error.set(errorInfo.userFriendlyMessage);
-        this.logger.error('Error al eliminar reporte', errorInfo);
-        this._isLoading.set(false);
+        this.handleError<boolean>(error, 'eliminar reporte');
+        this.setLoading(false);
         return of(false);
       })
     );
@@ -217,14 +177,7 @@ export class SessionReportsService {
    * Selecciona un reporte
    */
   selectReport(report: SessionReport | null): void {
-    this._selectedReport.set(report);
-  }
-
-  /**
-   * Limpia el error
-   */
-  clearError(): void {
-    this._error.set(null);
+    this.selectItem(report);
   }
 }
 
