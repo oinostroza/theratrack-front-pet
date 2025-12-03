@@ -45,6 +45,11 @@ jobs:
       - name: Build Angular app
         run: npm run build -- --configuration production --base-href ${{ steps.base-href.outputs.base_href }}
 
+      - name: Update 404.html base-href
+        run: |
+          BASE_HREF="${{ steps.base-href.outputs.base_href }}"
+          sed -i "s|<base href=\"/theratrack-front-pet/\">|<base href=\"$BASE_HREF\">|g" dist/theratrack-petsitter/browser/404.html
+
       - name: Setup Pages
         uses: actions/configure-pages@v4
 

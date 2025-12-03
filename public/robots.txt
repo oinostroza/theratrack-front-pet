@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://oinostroza.github.io/theratrack-front-pet/sitemap.xml
+
+# Disallow 404.html from being indexed
+Disallow: /404.html
+

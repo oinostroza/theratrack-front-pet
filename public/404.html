@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>TheratrackPetsitter</title>
+  <base href="/theratrack-front-pet/">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <script>
+    // GitHub Pages SPA handler - Immediate redirect to prevent 404 detection
+    // This script executes immediately to redirect before crawlers detect 404
+    (function() {
+      var pathSegmentsToKeep = 1;
+      var l = window.location;
+      var pathname = l.pathname;
+      
+      var segments = pathname.split('/').filter(function(s) { return s.length > 0; });
+      var basePath = segments.length > 0 ? '/' + segments[0] + '/' : '/';
+      var route = segments.slice(pathSegmentsToKeep).join('/');
+      
+      // Immediate redirect using replace (doesn't add to history)
+      var redirectUrl = l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
+        basePath + 'index.html' + (route ? '?/' + route : '') +
+        (l.search ? '&' + l.search.slice(1).replace(/&/g, '~and~') : '') +
+        l.hash;
+      
+      // Use location.replace for immediate redirect (no 404 in history)
+      window.location.replace(redirectUrl);
+    })();
+  </script>
+</head>
+<body>
+  <!-- This content should never be visible due to immediate redirect -->
+  <noscript>
+    <p>Please enable JavaScript to view this application.</p>
+    <p><a href="./index.html">Go to homepage</a></p>
+  </noscript>
+</body>
+</html>
+

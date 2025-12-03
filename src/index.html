@@ -1,11 +1,43 @@
 <!doctype html>
-<html lang="en">
+<html lang="es">
 <head>
   <meta charset="utf-8">
-  <title>TheratrackPetsitter</title>
+  <title>PetTrack - Gestión de Cuidado de Mascotas</title>
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Sistema de gestión para cuidado de mascotas. Administra sesiones, reportes y más.">
+  <meta name="robots" content="index, follow">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <script>
+    // Handle GitHub Pages 404 redirects - SEO friendly
+    // When coming from 404.html, redirect to the correct route immediately
+    (function() {
+      var l = window.location;
+      var search = l.search;
+      
+      // Check if we have a route parameter from 404.html
+      if (search.indexOf('?/') === 0) {
+        var route = search.slice(2).replace(/~and~/g, '&');
+        var hash = l.hash;
+        
+        // Extract route (everything before first & that has =)
+        var routeEnd = route.indexOf('&');
+        if (routeEnd > 0) {
+          // Check if the part after & is a query param (has =)
+          var afterAmp = route.substring(routeEnd + 1);
+          if (afterAmp.indexOf('=') > 0) {
+            route = route.substring(0, routeEnd);
+          }
+        }
+        
+        // Update URL without page reload (SEO friendly - no redirect chain)
+        if (route) {
+          var newPath = l.pathname.replace(/\/index\.html$/, '') + '/' + route;
+          window.history.replaceState(null, '', newPath + hash);
+        }
+      }
+    })();
+  </script>
 </head>
 <body>
   <app-root></app-root>
